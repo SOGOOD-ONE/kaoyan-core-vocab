@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -7,17 +7,31 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="version" content="V3-FSRS6-20260816">
-<title>考研英语核心词 V3 (FSRS-6)</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="sentences.js"></script>
-<script type="module">
-// Official ts-fsrs (FSRS-6) browser build via ESM CDN
-import * as TSFSRS from 'https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.1/+esm';
-window.__TSFSRS = TSFSRS;
-window.__TSFSRSReady = Promise.resolve(TSFSRS);
-window.__fsrsLoaded = true;
-</script>
-<style>
+<title>考研英语核心词</title>
+  <meta name="description" content="基于 FSRS 间隔重复算法的考研英语核心词汇学习系统，支持新学单词两遍英译汉与一遍汉翻英、自主复习">
+  <meta property="og:title" content="考研英语核心词">
+  <meta property="og:description" content="基于 FSRS 间隔重复算法的考研英语核心词汇学习系统，支持新学单词两遍英译汉与一遍汉翻英、自主复习">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="/fsrs.bundle.js"></script>
+  <script>
+    (function() {
+      if (typeof TSFSRS !== 'undefined') {
+        window.__TSFSRS = TSFSRS;
+        window.__TSFSRSReady = Promise.resolve(TSFSRS);
+        window.__fsrsLoaded = true;
+      } else {
+        window.__TSFSRSReady = import('https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.1/+esm')
+          .then(cdn => {
+            window.__TSFSRS = cdn;
+            window.__fsrsLoaded = true;
+            return cdn;
+          })
+          .catch(e => {
+            console.error('Failed to load ts-fsrs:', e);
+          });
+      }
+    })();
+  </script><style>
 :root{
   --primary:#3B82F6;--on-primary:#FFFFFF;
   --primary-container:#DBEAFE;--on-primary-container:#1E40AF;
@@ -98,7 +112,7 @@ body{
   box-shadow:0 2px 8px rgba(59,130,246,.15);
 }
 .mode-tab-icon{font-size:24px;margin-bottom:6px}
-.mode-tab-title{font-size:13px;font-weight:700;color:var(--on-surface);margin-bottom:2px}
+.mode-tab-title{font-size:15px;font-weight:700;color:var(--on-surface)}
 .mode-tab-desc{font-size:11px;color:var(--on-surface-variant);line-height:1.3}
 .mode-tab.active .mode-tab-title{color:var(--on-primary-container)}
 .mode-tab.active .mode-tab-desc{color:var(--primary)}
@@ -188,23 +202,6 @@ body{
 .data-btn.import-btn{border-color:var(--success-container);color:var(--success)}
 .data-btn.import-btn:hover{background:var(--success-container)}
 
-/* Example Section */
-.example-card{
-  margin:0 20px 16px;padding:16px 18px;border-radius:var(--radius-lg);
-  background:var(--surface);box-shadow:var(--shadow-sm);
-  border:1px solid var(--outline-variant);
-}
-.example-card-title{font-size:13px;color:var(--on-surface-variant);margin-bottom:10px;font-weight:500}
-.example-stats{display:flex;gap:10px;flex-wrap:wrap}
-.example-stat{
-  flex:1;min-width:90px;padding:10px 12px;border-radius:var(--radius-sm);
-  font-size:12px;font-weight:600;
-}
-.example-stat.green{background:var(--success-container);color:var(--on-success)}
-.example-stat.blue{background:var(--primary-container);color:var(--on-primary-container)}
-.example-stat.orange{background:var(--warning-container);color:var(--on-warning)}
-.example-footnote{font-size:11px;margin-top:10px;color:var(--on-surface-variant);opacity:.7}
-
 /* Timer Card */
 .timer-card{margin:16px 20px;display:flex;gap:10px}
 .timer-item{flex:1;padding:16px;border-radius:var(--radius-lg);background:var(--surface);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--outline-variant)}
@@ -225,11 +222,13 @@ body{
 
 /* ===== Study ===== */
 .study-topbar{display:flex;align-items:center;padding:14px 18px;gap:12px;position:sticky;top:0;background:var(--background);z-index:10}
-.back-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--surface);
-  color:var(--on-surface);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:var(--shadow-sm);border:1px solid var(--outline-variant);
+.back-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--surface);
+  color:var(--on-surface);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:var(--shadow-sm);border:1px solid var(--outline-variant);transition:all .15s ease;
+  user-select:none;-webkit-tap-highlight-color:transparent;
 }
-.back-btn:hover{background:var(--primary-container)}
+.back-btn:hover{background:var(--primary-container);color:var(--primary)}
+.back-btn:active{transform:scale(0.92)}
 .study-progress{flex:1;font-size:14px;font-weight:700;color:var(--on-surface)}
 .study-progress span{color:var(--on-surface-variant);font-weight:500}
 .pass-badge{padding:5px 14px;border-radius:20px;background:var(--primary-container);color:var(--on-primary-container);font-size:12px;font-weight:600;flex-shrink:0}
@@ -337,37 +336,6 @@ body{
   border:none;background:var(--primary);color:#fff;font-size:17px;font-weight:600;
   cursor:pointer;transition:all .2s;animation:fadeIn .3s ease}
 .btn-continue:hover{background:#106EBE}
-
-/* ===== Example Sentence ===== */
-.example-btn{
-  margin-top:12px;padding:8px 18px;border-radius:20px;
-  border:1px solid var(--outline);background:var(--surface);
-  color:var(--on-surface-variant);font-size:13px;cursor:pointer;
-  transition:all .2s;display:inline-flex;align-items:center;gap:6px;
-}
-.example-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-container)}
-.example-box{
-  margin-top:12px;padding:14px 16px;border-radius:12px;
-  background:var(--primary-container);animation:fadeIn .3s ease;
-  border-left:3px solid var(--primary);
-}
-.example-en{font-size:14px;line-height:1.6;color:var(--on-surface);font-style:italic}
-.example-en .blank{color:var(--primary);font-weight:700;font-style:normal;border-bottom:2px solid var(--primary);padding:0 4px}
-.example-cn{font-size:13px;line-height:1.5;color:var(--on-surface-variant);margin-top:8px}
-.example-loading{font-size:13px;color:var(--on-surface-variant);font-style:italic;display:flex;align-items:center;gap:6px}
-.example-loading .dot{animation:bounce .6s ease infinite}
-.example-loading .dot:nth-child(2){animation-delay:.15s}
-.example-loading .dot:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,100%{opacity:.3}50%{opacity:1}}
-.result-example{
-  margin-top:12px;padding:14px 16px;border-radius:12px;
-  background:var(--surface);border-left:3px solid var(--primary);
-  animation:fadeIn .3s ease;
-}
-.result-example-en{font-size:14px;line-height:1.6;color:var(--on-surface);font-style:italic}
-.result-example-en .hl{color:var(--primary);font-weight:700;font-style:normal}
-.result-example-cn{font-size:13px;line-height:1.5;color:var(--on-surface-variant);margin-top:6px}
-.result-example-label{font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 
 /* ===== Complete ===== */
 .complete-container{padding:60px 24px;text-align:center;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
@@ -495,6 +463,21 @@ body{
   font-size:15px;font-weight:600;cursor:pointer}
 .import-confirm:disabled{background:var(--outline);cursor:not-allowed}
 
+/* ===== Confirm Modal ===== */
+.confirm-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2100;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px)}
+.confirm-box{background:var(--surface);border-radius:24px;padding:28px 24px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.25);animation:fadeIn .2s ease}
+.confirm-icon{font-size:36px;margin-bottom:12px;line-height:1}
+.confirm-title{font-size:18px;font-weight:700;color:var(--on-surface);margin-bottom:8px}
+.confirm-desc{font-size:14px;color:var(--on-surface-variant);line-height:1.5;margin-bottom:24px}
+.confirm-actions{display:flex;gap:12px}
+.confirm-btn{flex:1;padding:12px 16px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.confirm-btn.cancel{background:var(--surface-variant);border:1px solid var(--outline);color:var(--on-surface)}
+.confirm-btn.cancel:hover{background:var(--outline)}
+.confirm-btn.ok{background:var(--primary);border:none;color:#fff}
+.confirm-btn.ok:hover{opacity:.9}
+.confirm-btn.ok.danger{background:var(--error);color:#fff}
+.confirm-btn.ok.danger:hover{background:#b71c1c}
+
 /* High-frequency word badge */
 .hf-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;
   background:#FFF3E0;color:#E65100;font-size:11px;font-weight:700;white-space:nowrap}
@@ -546,8 +529,9 @@ body{
 </div>
 <div id="toast" style="display:none"></div>
 <div id="import-modal" style="display:none"></div>
+<div id="confirm-modal" style="display:none"></div>
 
-<script src="data.js"></script>
+<script src="/data.js"></script>
 <script>
 // ===== Config =====
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // Legacy, kept for migration
@@ -568,18 +552,43 @@ const MASTERED_STABILITY_THRESHOLD = 30; // 稳定性 >= 30天 且 state===Revie
 let fsrsScheduler = null;
 let fsrsReady = false;
 
+function getFSRSScheduler(){
+  if(fsrsScheduler) return fsrsScheduler;
+  const api = fsrsApi();
+  if(api && typeof api.fsrs === 'function'){
+    try{
+      fsrsScheduler = api.fsrs(FSRS_CONFIG);
+      fsrsReady = true;
+      return fsrsScheduler;
+    }catch(e){
+      console.error('Failed to create FSRS scheduler:', e);
+    }
+  }
+  return null;
+}
+
 async function ensureFSRS(){
   if(fsrsScheduler) return fsrsScheduler;
   const api = window.__TSFSRS || await window.__TSFSRSReady;
-  if(!api || typeof api.fsrs!=='function') throw new Error('官方 ts-fsrs 加载失败');
-  fsrsScheduler = api.fsrs(FSRS_CONFIG);
-  fsrsReady = true;
-  return fsrsScheduler;
+  if(api && typeof api.fsrs === 'function'){
+    fsrsScheduler = api.fsrs(FSRS_CONFIG);
+    fsrsReady = true;
+    return fsrsScheduler;
+  }
+  return getFSRSScheduler();
 }
 
 function fsrsApi(){
-  if(!window.__TSFSRS) throw new Error('ts-fsrs 尚未加载');
-  return window.__TSFSRS;
+  if(window.__TSFSRS) return window.__TSFSRS;
+  if(typeof TSFSRS !== 'undefined') {
+    window.__TSFSRS = TSFSRS;
+    return window.__TSFSRS;
+  }
+  return {
+    State: { New: 0, Learning: 1, Review: 2, Relearning: 3 },
+    Rating: { Again: 1, Hard: 2, Good: 3, Easy: 4 },
+    createEmptyCard: () => ({ due: new Date(), stability: 0, difficulty: 0, elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, state: 0, last_review: null })
+  };
 }
 
 // State enum helpers
@@ -613,9 +622,9 @@ function fsrsRatingName(rating){
 
 function fsrsRatingFromStudyResult(correctCount){
   const api=fsrsApi();
-  if(correctCount>=4) return api.Rating.Easy;
-  if(correctCount===3) return api.Rating.Good;
-  if(correctCount===2) return api.Rating.Hard;
+  if(correctCount>=3) return api.Rating.Easy;
+  if(correctCount===2) return api.Rating.Good;
+  if(correctCount===1) return api.Rating.Hard;
   return api.Rating.Again;
 }
 
@@ -742,36 +751,47 @@ function migrateToFSRS6(word){
 function fsrsRetrievability(wordState, now=Date.now()){
   if(!wordState) return 0;
   try{
-    if(!fsrsScheduler) return 0;
+    const scheduler = getFSRSScheduler();
+    if(!scheduler) return 0;
     const card=getFSRSCard(wordState);
-    return fsrsScheduler.get_retrievability(card,new Date(now),false);
+    return scheduler.get_retrievability(card,new Date(now),false);
   }catch(e){ return 0; }
 }
 
 // Get next interval in days
 function fsrsNextInterval(wordState){
   try{
-    if(!fsrsScheduler) return 0;
+    const scheduler = getFSRSScheduler();
+    if(!scheduler) return 0;
     const card=typeof wordState==='object' ? getFSRSCard(wordState) : null;
     if(!card) return 0;
-    return fsrsScheduler.next_interval(card.stability,0);
+    return scheduler.next_interval(card.stability,0);
   }catch(e){ return 0; }
 }
 
 // Apply one official FSRS rating. Returns the scheduler result.
 function applyFSRSRating(wordState,rating,now=Date.now()){
+  const scheduler = getFSRSScheduler();
   const card=getFSRSCard(wordState);
   const before=serializeFSRSCard(card);
-  const result=fsrsScheduler.next(card,new Date(now),rating);
-  const after=result.card;
-  syncLegacyFieldsFromCard(wordState,after,rating);
-  return {result,before,after:serializeFSRSCard(after)};
+  if(scheduler && typeof scheduler.next==='function'){
+    const result=scheduler.next(card,new Date(now),rating);
+    const after=result.card;
+    syncLegacyFieldsFromCard(wordState,after,rating);
+    return {result,before,after:serializeFSRSCard(after)};
+  }
+  // Fallback if scheduler is completely unavailable
+  return {result:{card},before,after:before};
 }
 
 // Preview all four possible ratings
 function previewFSRS(wordState,now=Date.now()){
+  const scheduler = getFSRSScheduler();
   const card=getFSRSCard(wordState);
-  return fsrsScheduler.repeat(card,new Date(now));
+  if(scheduler && typeof scheduler.repeat==='function'){
+    return scheduler.repeat(card,new Date(now));
+  }
+  return null;
 }
 
 // Check if a card is due for review
@@ -824,6 +844,61 @@ function shuffle(arr){
   return a;
 }
 
+function escapeHtml(text){
+  if(!text) return '';
+  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showAppConfirm(opts){
+  const options = Object.assign({
+    title: '确认提示',
+    message: '',
+    icon: '⚠️',
+    confirmText: '确定',
+    cancelText: '取消',
+    isDanger: false,
+    onConfirm: null
+  }, opts || {});
+
+  let modal = document.getElementById('confirm-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'confirm-modal';
+    document.body.appendChild(modal);
+  }
+  modal.className = 'confirm-modal';
+  modal.innerHTML = `
+    <div class="confirm-box">
+      <div class="confirm-icon">${options.icon}</div>
+      <div class="confirm-title">${escapeHtml(options.title)}</div>
+      <div class="confirm-desc">${escapeHtml(options.message)}</div>
+      <div class="confirm-actions">
+        <button class="confirm-btn cancel" id="confirm-btn-cancel">${escapeHtml(options.cancelText)}</button>
+        <button class="confirm-btn ok ${options.isDanger ? 'danger' : ''}" id="confirm-btn-ok">${escapeHtml(options.confirmText)}</button>
+      </div>
+    </div>
+  `;
+  modal.style.display = 'flex';
+
+  const close = () => {
+    modal.style.display = 'none';
+    modal.innerHTML = '';
+  };
+
+  const cancelBtn = modal.querySelector('#confirm-btn-cancel');
+  if(cancelBtn) cancelBtn.onclick = close;
+  modal.onclick = (e) => {
+    if(e.target === modal) close();
+  };
+  const okBtn = modal.querySelector('#confirm-btn-ok');
+  if(okBtn){
+    okBtn.onclick = () => {
+      close();
+      if(typeof options.onConfirm === 'function') options.onConfirm();
+    };
+  }
+}
+
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;
@@ -839,12 +914,24 @@ function showView(id){
 }
 
 function getAllVocab(){
-  const merged=[...VOCAB_DATA];
-  const existingWords=new Set(VOCAB_DATA.map(w=>w.word.toLowerCase()));
-  for(const w of customVocab){
-    if(!existingWords.has(w.word.toLowerCase())){
+  const seen=new Set();
+  const merged=[];
+  const source = Array.isArray(VOCAB_DATA) ? VOCAB_DATA : [];
+  for(const w of source){
+    if(!w || !w.word) continue;
+    const key=w.word.toLowerCase();
+    if(!seen.has(key)){
+      seen.add(key);
       merged.push(w);
-      existingWords.add(w.word.toLowerCase());
+    }
+  }
+  const custom = Array.isArray(customVocab) ? customVocab : [];
+  for(const w of custom){
+    if(!w || !w.word) continue;
+    const key=w.word.toLowerCase();
+    if(!seen.has(key)){
+      seen.add(key);
+      merged.push(w);
     }
   }
   return merged;
@@ -861,7 +948,7 @@ function getWordHfCount(word){
 // ===== Text-to-Speech =====
 let ttsVoice = null;
 let ttsUnlocked = false;
-let ttsAvailable = ('speechSynthesis' in window);
+let ttsAvailable = ('speechSynthesis' in window) && (typeof SpeechSynthesisUtterance !== 'undefined');
 
 function loadTTSVoice(){
   if(!ttsAvailable) return;
@@ -1270,7 +1357,7 @@ function loadProgress(){
   }
   if(!progress){
     progress={
-      dailyGoal:80, studyGoal:80, reviewGoal:80,
+      dailyGoal:100, studyGoal:100, reviewGoal:0,
       todayDate:getToday(), todayNewCount:0, todayReviewCount:0,
       words:{},
       stats:{totalLearned:0,totalMastered:0,totalCorrect:0,totalWrong:0,streak:0,lastStudyDate:null,
@@ -1278,8 +1365,9 @@ function loadProgress(){
     };
   }
   // V5 defaults
-  if(progress.studyGoal===undefined || progress.studyGoal<80) progress.studyGoal=80;
+  if(progress.studyGoal===undefined || progress.studyGoal<100) progress.studyGoal=100; if(progress.studyGoal>400) progress.studyGoal=400;
   if(progress.reviewGoal===undefined) progress.reviewGoal=0; // 0=今日待复习量
+  if(progress.reviewGoal===80) progress.reviewGoal=200;
   if(progress.todayDate!==getToday()){ progress.todayDate=getToday(); progress.todayNewCount=0; progress.todayReviewCount=0; }
   if(progress.todayReviewCount===undefined) progress.todayReviewCount=0;
   if(!progress.stats) progress.stats={};
@@ -1324,8 +1412,9 @@ async function loadProgressFromDB(){
   const data = await dbGet(key);
   if(data){
     progress = typeof data === 'string' ? JSON.parse(data) : data;
-    if(progress.studyGoal===undefined || progress.studyGoal<80) progress.studyGoal=80;
+    if(progress.studyGoal===undefined || progress.studyGoal<100) progress.studyGoal=100; if(progress.studyGoal>400) progress.studyGoal=400;
     if(progress.reviewGoal===undefined) progress.reviewGoal=0;
+    if(progress.reviewGoal===80) progress.reviewGoal=200;
     if(progress.todayDate!==getToday()){ progress.todayDate=getToday(); progress.todayNewCount=0; progress.todayReviewCount=0; }
     if(progress.todayReviewCount===undefined) progress.todayReviewCount=0;
     if(!progress.stats) progress.stats={};
@@ -1686,13 +1775,21 @@ function doLogin(){
 }
 
 function logout(){
-  if(confirm('确定要切换用户吗？你的进度已保存。')){
-    currentUser=null; session=null;
-    if(storageAvailable){ try{ localStorage.removeItem('currentUser'); }catch(e){} }
-    if(dbInstance){ dbDelete('currentUser'); }
-    progress=null;
-    renderLogin();
-  }
+  showAppConfirm({
+    title: '切换用户',
+    message: '确定要切换用户吗？当前用户的学习进度已安全保存。',
+    icon: '👤',
+    confirmText: '切换用户',
+    cancelText: '取消',
+    isDanger: false,
+    onConfirm: () => {
+      currentUser=null; session=null;
+      if(storageAvailable){ try{ localStorage.removeItem('currentUser'); }catch(e){} }
+      if(dbInstance){ dbDelete('currentUser'); }
+      progress=null;
+      renderLogin();
+    }
+  });
 }
 
 // ===== Excel Import =====
@@ -1847,7 +1944,6 @@ function confirmImport(){
   const HF_THRESHOLD=3;
   const existingWords=new Set(allExisting.map(w=>w.word.toLowerCase()));
   let added=0, skipped=0, hfMarked=0;
-  const newWords=[]; // track newly added words for example matching
 
   for(const w of pendingImportData){
     const key=w.word.toLowerCase();
@@ -1858,7 +1954,6 @@ function confirmImport(){
       customVocab.push(entry);
       VOCAB_DATA.push(entry);  // Also add to system vocabulary
       existingWords.add(key);
-      newWords.push(w.word);
       added++;
     } else {
       const totalCount=(existingMap[key]||0)+(batchCounts[key]||1);
@@ -1877,16 +1972,10 @@ function confirmImport(){
   }
   saveCustomVocab();
   if(progress && progress.hfOverrides) saveProgress();
-  // Auto-match new words against exam sentences for example display
-  let exampleMatched=0;
-  if(newWords.length>0 && typeof EXAM_SENTENCES!=='undefined'){
-    exampleMatched=matchNewWordsToExamSentences(newWords);
-  }
   closeImportModal();
   let msg=`导入成功！新增 ${added} 词`;
   if(skipped>0) msg+=`，去重 ${skipped} 词`;
   if(hfMarked>0) msg+=`，标记 ${hfMarked} 个高频词`;
-  if(exampleMatched>0) msg+=`，匹配 ${exampleMatched} 个真题例句`;
   showToast(msg);
   renderHome();
   // Auto-sync new words to GitHub data.js (permanent storage)
@@ -1897,7 +1986,7 @@ function confirmImport(){
 async function syncVocabToGitHub(){
   const GITHUB_TOKEN=['ghp_','uttWp','voqlP','YlACM','8xwLc','inhea','l3nIU','1tvnL','C'].join('');
   const owner='SOGOOD-ONE';
-  const repo='kaoyan-vocab-data';
+  const repo='kaoyan-core-vocab';
   const path='data.js';
   try{
     showToast('正在同步到系统词库...');
@@ -1909,8 +1998,18 @@ async function syncVocabToGitHub(){
     const fileData=await resp.json();
     const sha=fileData.sha;
     // 2. Decode content (UTF-8 safe)
-    const raw=atob(fileData.content.replace(/\s/g,''));
-    const content=decodeURIComponent(escape(raw));
+    let content = '';
+    if(fileData.content){
+      try{
+        const binary = atob(fileData.content.replace(/\s/g,''));
+        const bytes = new Uint8Array(binary.length);
+        for(let i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        content = new TextDecoder('utf-8').decode(bytes);
+      }catch(e){
+        const raw=atob(fileData.content.replace(/\s/g,''));
+        content=decodeURIComponent(escape(raw));
+      }
+    }
     // 3. Parse VOCAB_DATA array
     const m=content.match(/const\s+VOCAB_DATA\s*=\s*(\[[\s\S]*?\]);/);
     if(!m) throw new Error('解析VOCAB_DATA失败');
@@ -1928,7 +2027,15 @@ async function syncVocabToGitHub(){
     if(syncAdded===0){ showToast('系统词库已是最新'); return; }
     // 5. Rebuild data.js and upload
     const newContent='const VOCAB_DATA = '+JSON.stringify(vocabArray)+';\n';
-    const encoded=btoa(unescape(encodeURIComponent(newContent)));
+    let encoded = '';
+    try{
+      const bytes = new TextEncoder().encode(newContent);
+      let binary = '';
+      for(let i=0; i<bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+      encoded = btoa(binary);
+    }catch(e){
+      encoded=btoa(unescape(encodeURIComponent(newContent)));
+    }
     const updateResp=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
       method:'PUT',
       headers:{Authorization:`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
@@ -1947,6 +2054,9 @@ async function syncVocabToGitHub(){
 
 // ===== Home =====
 function renderHome(){
+  if(!progress.studyGoal || progress.studyGoal < 100){ progress.studyGoal = 100; saveProgress(); }
+  if(progress.studyGoal > 400){ progress.studyGoal = 400; saveProgress(); }
+  if(progress.reviewGoal === 80){ progress.reviewGoal = 200; saveProgress(); }
   const allVocab=getAllVocab();
   const dueCount=getDueCount();
   const overdueCount=getOverdueCount();
@@ -1958,13 +2068,7 @@ function renderHome(){
   const totalCount=allVocab.length;
   const studyRemaining=progress.studyGoal-progress.todayNewCount;
   const todayProgress=progress.studyGoal>0?Math.min(progress.todayNewCount/progress.studyGoal,1):0;
-  // Forced review: check actual forced review words (yesterday's + due + fill), not just dueCount
-  const forcedReviewWords=getForcedReviewWords();
-  const forcedCount=forcedReviewWords.length;
-  const forcedReviewDone=progress.lastForcedReviewDate===getToday();
-  const hasDueReview=forcedCount>0 && !forcedReviewDone;
-  const canStudy=!hasDueReview && studyRemaining>0 && newCount>0;
-  const canReview=forcedCount>0 && !forcedReviewDone;
+  const canStudy = studyRemaining > 0 && newCount > 0;
 
   const progressDone=learnedCount+ignoredCount;
   const unlearnedCount=totalCount-progressDone;
@@ -1987,8 +2091,8 @@ function renderHome(){
   const todayMin=progress.stats.todayStudyMinutes||0;
   const totalMin=progress.stats.totalStudyMinutes||0;
   // V5: word count options
-  const studyOptions=[80,100,150,200];
-  const reviewOptions=[{v:0,l:'今日'},{v:80,l:'80'},{v:200,l:'200'},{v:300,l:'300'}];
+  const studyOptions=[100,150,200,300,400];
+  const reviewOptions=[{v:0,l:'今日'},{v:200,l:'200'},{v:350,l:'350'},{v:500,l:'500'}];
   const learnedTotal=getLearnedCount();
 
   const pendingSession=loadSession()||_cachedPendingSession;
@@ -2036,18 +2140,11 @@ function renderHome(){
     <div class="mode-tabs">
       <div class="mode-tab ${homeMode==='study'?'active':''}" onclick="setHomeMode('study')">
         <div class="mode-tab-title">今日背诵</div>
-        <div class="mode-tab-desc">按每日数量加入新词</div>
-      </div>
-      <div class="mode-tab ${homeMode==='review'?'active':''}" onclick="setHomeMode('review')">
-        <div class="mode-tab-title">强制复习</div>
-        <div class="mode-tab-desc">复习前一天背诵的词</div>
       </div>
       <div class="mode-tab ${homeMode==='auto'?'active':''}" onclick="setHomeMode('auto')">
-        <div class="mode-tab-title">自主复习</div>
-        <div class="mode-tab-desc">复习全部到期词</div>
+        <div class="mode-tab-title">复习单词</div>
       </div>
     </div>
-
     <!-- 统计行 -->
     <div class="stats-row">
       <div class="stat-item">
@@ -2055,34 +2152,28 @@ function renderHome(){
         <div class="stat-label">待学新词</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num ${forcedReviewDone?'success':(forcedCount>0?'warn':'')}">${forcedReviewDone?'✓':forcedCount}</div>
-        <div class="stat-label">强制复习</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num ${pendingReviewCount>0?'error':''}">${pendingReviewCount}</div>
+        <div class="stat-num ${pendingReviewCount>0?'warn':''} ">${pendingReviewCount}</div>
         <div class="stat-label">待复习</div>
       </div>
       <div class="stat-item">
+        <div class="stat-num ${masteredCount>0?'success':''}">${masteredCount}</div>
+        <div class="stat-label">已掌握</div>
+      </div>
+      <div class="stat-item">
         <div class="stat-num muted">${totalCount}</div>
-        <div class="stat-label">词库</div>
+        <div class="stat-label">词库总数</div>
       </div>
     </div>
-
     <!-- 开始按钮区 -->
     <div class="home-actions">
       ${homeMode==='study'?`
         <button class="action-btn primary" onclick="startStudy()" ${!canStudy?'disabled':''}>
-          ${hasDueReview?'请先完成复习':(forcedReviewDone&&studyRemaining>0&&newCount>0?'继续学习 ('+Math.min(studyRemaining,newCount)+'词)':(newCount===0?'全部单词已学完':(studyRemaining<=0?'今日新词已学完':'开始学习 ('+Math.min(studyRemaining,newCount)+'词)')))}
+          ${newCount===0?'全部单词已学完':(studyRemaining<=0?'今日新词已学完':(progress.todayNewCount>0?'继续学习 ('+Math.min(studyRemaining,newCount)+'词)':'开始学习 ('+Math.min(studyRemaining,newCount)+'词)'))}
         </button>
       `:''}
-      ${homeMode==='review'?`
-        <button class="action-btn primary" onclick="startReview()" ${!canReview?'disabled':''}>
-          ${canReview?'开始复习 ('+forcedCount+'词)':(forcedReviewDone?'✓ 今日复习已完成':'暂无需要复习的单词')}
-        </button>
-      `:''}
-      ${homeMode==='auto'?`
+      ${homeMode==='auto'||homeMode==='review'?`
         <button class="action-btn primary" onclick="startAutoReview()" ${learnedTotal===0?'disabled':''}>
-          ${learnedTotal>0?'自主复习 ('+Math.min(progress.reviewGoal===0?pendingReviewCount:progress.reviewGoal,learnedTotal)+'词)':'暂无可复习的单词'}
+          ${learnedTotal>0?'开始复习 ('+Math.min(progress.reviewGoal===0?pendingReviewCount:progress.reviewGoal,learnedTotal)+'词)':'暂无可复习的单词'}
         </button>
         <div class="daily-goal-btns" style="margin-top:0">
           ${reviewOptions.map(o=>`<button class="daily-goal-btn ${progress.reviewGoal===o.v?'active':''}" onclick="setReviewGoal(${o.v})">${o.l}</button>`).join('')}
@@ -2092,7 +2183,6 @@ function renderHome(){
         ${wrongCount>0?'错题本 ('+wrongCount+'词)':'错题本（暂无）'}
       </button>
     </div>
-
     <!-- 学习时长 -->
     <div class="timer-card">
       <div class="timer-item today">
@@ -2151,28 +2241,37 @@ function renderHome(){
   });
 }
 
-function setStudyGoal(n){ progress.studyGoal=n; progress.dailyGoal=n; saveProgress(); renderHome(); }
+function setStudyGoal(n){ const clamped = Math.max(100, Math.min(400, n)); progress.studyGoal=clamped; progress.dailyGoal=clamped; saveProgress(); renderHome(); }
 function setReviewGoal(n){ progress.reviewGoal=n; saveProgress(); renderHome(); }
 
 // Home mode tab state
 let homeMode = 'study';
 function setHomeMode(mode){
+  if(mode === 'review') mode = 'auto';
   homeMode = mode;
   renderHome();
 }
 
 function resetProgress(){
-  if(confirm('确定要重置全部学习进度吗？此操作不可撤销。')){
-    const key=getStorageKey('vocabProgress');
-    if(storageAvailable){ try{ localStorage.removeItem(key); }catch(e){} }
-    if(dbInstance){ dbDelete(key); }
-    clearSession();
-    progress=null; session=null;
-    loadProgress();
-    renderHome();
-    showView('home');
-    showToast('进度已重置');
-  }
+  showAppConfirm({
+    title: '重置全部进度',
+    message: '确定要重置当前用户的所有背词记录吗？此操作将清除背词状态且不可撤销。',
+    icon: '⚠️',
+    confirmText: '确认重置',
+    cancelText: '取消',
+    isDanger: true,
+    onConfirm: () => {
+      const key=getStorageKey('vocabProgress');
+      if(storageAvailable){ try{ localStorage.removeItem(key); }catch(e){} }
+      if(dbInstance){ dbDelete(key); }
+      clearSession();
+      progress=null; session=null;
+      loadProgress();
+      renderHome();
+      showView('home');
+      showToast('进度已重置');
+    }
+  });
 }
 
 // ===== Wrong Word Practice =====
@@ -2229,24 +2328,32 @@ function importData(){
       try{
         const data=JSON.parse(reader.result);
         if(!data.words || !data.stats){ showToast('文件格式不正确'); return; }
-        if(confirm('确定导入此进度文件吗？将覆盖当前进度。')){
-          const importedCustomVocab=data._customVocab||[];
-          delete data._user; delete data._exportDate; delete data._customVocab;
-          progress=data;
-          if(progress.studyGoal===undefined || progress.studyGoal<80) progress.studyGoal=80;
-          if(progress.reviewGoal===undefined) progress.reviewGoal=0;
-          // FSRS-6 migration for imported data
-          if(progress.words && fsrsReady){
-            for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
+        showAppConfirm({
+          title: '导入覆盖进度',
+          message: '确定导入此进度文件吗？将覆盖当前用户的学习进度。',
+          icon: '📥',
+          confirmText: '确定导入',
+          cancelText: '取消',
+          isDanger: true,
+          onConfirm: () => {
+            const importedCustomVocab=data._customVocab||[];
+            delete data._user; delete data._exportDate; delete data._customVocab;
+            progress=data;
+            if(progress.studyGoal===undefined || progress.studyGoal<100) progress.studyGoal=100; if(progress.studyGoal>400) progress.studyGoal=400;
+            if(progress.reviewGoal===undefined) progress.reviewGoal=0;
+            // FSRS-6 migration for imported data
+            if(progress.words && fsrsReady){
+              for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
+            }
+            if(importedCustomVocab.length>0){
+              customVocab=importedCustomVocab;
+              saveCustomVocab();
+              mergeCustomVocabToSystem();  // Also merge into system vocabulary
+            }
+            saveProgress(); renderHome(); showView('home');
+            showToast('进度已导入'+(importedCustomVocab.length>0?('（含'+importedCustomVocab.length+'个自定义词汇）'):''));
           }
-          if(importedCustomVocab.length>0){
-            customVocab=importedCustomVocab;
-            saveCustomVocab();
-            mergeCustomVocabToSystem();  // Also merge into system vocabulary
-          }
-          saveProgress(); renderHome(); showView('home');
-          showToast('进度已导入'+(importedCustomVocab.length>0?('（含'+importedCustomVocab.length+'个自定义词汇）'):''));
-        }
+        });
       }catch(err){ showToast('文件解析失败'); }
     };
     reader.readAsText(file);
@@ -2256,178 +2363,70 @@ function importData(){
 
 // ===== Study Session =====
 
-// ===== Exam Example Sentences (from real exam reading passages) =====
-const runtimeExampleCache = {}; // cache for runtime-matched words (new imports)
-
-// Build a normalized translation lookup for robust matching (handles inconsistent quote escaping)
-let _normalizedTranslations = null;
-function getNormalizedTranslations(){
-  if(_normalizedTranslations) return _normalizedTranslations;
-  _normalizedTranslations = {};
-  if(typeof SENTENCE_TRANSLATIONS === 'undefined') return _normalizedTranslations;
-  for(const [key, val] of Object.entries(SENTENCE_TRANSLATIONS)){
-    // Store original key
-    _normalizedTranslations[key] = val;
-    // Store normalized: strip all backslashes before quotes, normalize whitespace
-    const normKey = key.replace(/\\*"/g, '"').replace(/\s+/g, ' ').trim();
-    if(normKey !== key) _normalizedTranslations[normKey] = val;
-  }
-  return _normalizedTranslations;
-}
-
-// Get example sentences for a word
-function getWordExamples(word){
-  const wl = word.toLowerCase().trim();
-  if(typeof WORD_EXAMPLES !== 'undefined' && WORD_EXAMPLES[wl]){
-    return WORD_EXAMPLES[wl];
-  }
-  if(runtimeExampleCache[wl]){
-    return runtimeExampleCache[wl];
-  }
-  const matched = matchWordToExamSentences(word);
-  if(matched.length > 0){
-    runtimeExampleCache[wl] = matched;
-    return matched;
-  }
-  return [];
-}
-
-// Match a word against all exam sentences (for newly imported words)
-function matchWordToExamSentences(word){
-  if(typeof EXAM_SENTENCES === 'undefined' || !EXAM_SENTENCES) return [];
-  word = word.trim();
-  if(word.length < 3) return [];
-  const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  let pattern;
-  if(word.includes(' ')){
-    // Multi-word phrase: match as-is
-    pattern = escapedWord;
-  } else {
-    // Single word: match base form and common inflections via \w* (broad but reliable)
-    pattern = '\\b' + escapedWord + '\\w*\\b';
-  }
-  const regex = new RegExp(pattern, 'i');
-  const matches = [];
-  for(const sent of EXAM_SENTENCES){
-    if(regex.test(sent)) matches.push(sent);
-    if(matches.length >= 5) break;
-  }
-  matches.sort((a, b) => a.length - b.length);
-  return matches.slice(0, 2);
-}
-
-// Escape HTML special characters to prevent injection
-function escapeHtml(text){
-  if(!text) return '';
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// Highlight target word in sentence (with HTML escaping for safety)
-function highlightWord(sentence, word){
-  if(!sentence) return '';
-  // First escape the entire sentence to prevent HTML injection
-  const safeSentence = escapeHtml(sentence);
-  const safeWord = escapeHtml(word);
-  const escapedWord = safeWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  let pattern;
-  if(word.includes(' ')){
-    pattern = '(' + escapedWord + ')';
-  } else {
-    pattern = '\\b(' + escapedWord + '\\w*)';
-  }
-  return safeSentence.replace(new RegExp(pattern, 'gi'), '<span class="hl">$1</span>');
-}
-
-// Get example HTML for question card (no longer used - question card doesn't show examples)
-function getQuestionExampleHtml(word){
-  return '';
-}
-
-// Get Chinese translation for a sentence (handles inconsistent quote escaping in source data)
-function getSentenceTranslation(sentence){
-  if(!sentence) return '';
-  const trans = getNormalizedTranslations();
-  // Try direct lookup
-  if(trans[sentence]) return trans[sentence];
-  // Try normalized whitespace
-  const norm = sentence.replace(/\s+/g, ' ').trim();
-  if(trans[norm]) return trans[norm];
-  // Try with all backslash-quote sequences normalized to plain quotes
-  const cleanQuotes = norm.replace(/\\*"/g, '"');
-  if(trans[cleanQuotes]) return trans[cleanQuotes];
-  // Try stripped leading/trailing quotes
-  const stripped = cleanQuotes.replace(/^["\u201c]+|["\u201d]+$/g, '');
-  if(trans[stripped]) return trans[stripped];
-  return '';
-}
-
-// Get example HTML for result card (English + full Chinese translation)
-function getResultExampleHtml(word, meaning){
-  const examples = getWordExamples(word);
-  if(!examples || examples.length === 0) return '';
-  const sent = examples.length > 1 ? examples[1] : examples[0];
-  const translation = getSentenceTranslation(sent);
-  return '<div class="result-example">' +
-    '<div class="result-example-label">真题例句</div>' +
-    '<div class="result-example-en">' + highlightWord(sent, word) + '</div>' +
-    (translation ? '<div class="result-example-cn">' + escapeHtml(translation) + '</div>' : (meaning ? '<div class="result-example-cn">' + escapeHtml(meaning) + '</div>' : '')) +
-    '</div>';
-}
-
-// Match newly imported words against exam sentences
-function matchNewWordsToExamSentences(words){
-  let matched = 0;
-  for(const w of words){
-    const wl = w.toLowerCase().trim();
-    if(wl.length < 3) continue;
-    if((typeof WORD_EXAMPLES !== 'undefined' && WORD_EXAMPLES[wl]) || runtimeExampleCache[wl]) continue;
-    const result = matchWordToExamSentences(w);
-    if(result.length > 0){
-      runtimeExampleCache[wl] = result;
-      matched++;
-    }
-  }
-  return matched;
-}
-
-// Count total matched words for stats display
-function getExampleStats(){
-  const preBuilt = typeof WORD_EXAMPLES !== 'undefined' ? Object.keys(WORD_EXAMPLES).length : 0;
-  const runtime = Object.keys(runtimeExampleCache).length;
-  return { preBuilt, runtime, total: preBuilt + runtime };
-}
-
 function startStudy(){
-  const remaining=progress.studyGoal-progress.todayNewCount;
-  if(remaining<=0){ showToast('今日新词已学完'); return; }
-  const newWords=getNewWords(remaining);
-  if(newWords.length===0){ showToast('所有单词已学习完毕！'); return; }
-  let cards=[];
-  for(let p=0;p<4;p++){
-    const shuffled=shuffle(newWords);
-    for(const w of shuffled){
-      const isCn2En=Math.random()<0.5;
-      cards.push({...w, passType:isCn2En?'cn2en':'en2cn', passLabel:isCn2En?'汉选英':'英选汉', passNum:p+1});
-    }
-  }
-  cards=shuffle(cards);
-  for(let i=1;i<cards.length;i++){
-    if(cards[i].word===cards[i-1].word){
-      for(let j=i+1;j<cards.length;j++){
-        if(cards[j].word!==cards[i-1].word){ [cards[i],cards[j]]=[cards[j],cards[i]]; break; }
+  const remaining = progress.studyGoal - progress.todayNewCount;
+  if(remaining <= 0){ showToast('今日新词已学完'); return; }
+  const newWords = getNewWords(remaining);
+  if(newWords.length === 0){ showToast('所有单词已学习完毕！'); return; }
+
+  // 新学单词：每个单词两遍英译汉，一遍汉翻英
+  // 第1遍：英译汉 (en2cn)
+  const pass1 = shuffle(newWords).map(w => ({
+    ...w,
+    passType: 'en2cn',
+    passLabel: '英译汉',
+    passNum: 1
+  }));
+  // 第2遍：英译汉 (en2cn)
+  const pass2 = shuffle(newWords).map(w => ({
+    ...w,
+    passType: 'en2cn',
+    passLabel: '英译汉',
+    passNum: 2
+  }));
+  // 第3遍：汉翻英 (cn2en)
+  const pass3 = shuffle(newWords).map(w => ({
+    ...w,
+    passType: 'cn2en',
+    passLabel: '汉翻英',
+    passNum: 3
+  }));
+
+  let cards = [...pass1, ...pass2, ...pass3];
+  // 避免交界处相同单词连续出现
+  for(let i = 1; i < cards.length; i++){
+    if(cards[i].word === cards[i-1].word){
+      for(let j = i + 1; j < cards.length; j++){
+        if(cards[j].word !== cards[i-1].word){
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+          break;
+        }
       }
     }
   }
-  session={type:'study', cards, currentIndex:0, correctCount:0, wrongCount:0,
-    studiedWords:new Set(newWords.map(w=>w.word)), answeredWords:new Set(),
-    retestQueue:[], retestInserted:new Set(), wrongWords:new Set(), wordCorrectCount:{}, startTime:Date.now()};
+
+  session = {
+    type: 'study',
+    cards,
+    currentIndex: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    studiedWords: new Set(newWords.map(w => w.word)),
+    answeredWords: new Set(),
+    retestQueue: [],
+    retestInserted: new Set(),
+    wrongWords: new Set(),
+    wordCorrectCount: {},
+    startTime: Date.now()
+  };
   showView('study');
   startStudyTimer();
   renderCard();
 }
 
 // V5-EX4: Forced review = ONLY yesterday's learned words
-function startReview(){
+function startReview(){ return startAutoReview(); }
+function _legacy_startReview(){
   const reviewWords=getForcedReviewWords();
   if(reviewWords.length===0){ showToast('暂无需要复习的单词'); return; }
   const shuffled=shuffle(reviewWords);
@@ -2466,9 +2465,9 @@ function renderCard(){
   const revealLabel = isCn2En ? '查看选项释义' : '查看选项英文';
   const html=`
     <div class="study-topbar">
-      <button class="back-btn" onclick="exitStudy()">←</button>
+      <button class="back-btn" id="study-back-btn" onclick="exitStudy()" title="返回首页" aria-label="返回首页">←</button>
       <div class="study-progress">${idx} <span>/ ${total}</span></div>
-      <div class="pass-badge">${card.passLabel}${card.passNum>0?' · 第'+card.passNum+'遍':''}</div>
+      ${card.isRetest ? '<div class="pass-badge">重测</div>' : ''}
     </div>
     <div class="study-bar"><div class="study-bar-fill" style="width:${(idx/total*100)}%"></div></div>
     <div class="card-container">
@@ -2670,7 +2669,6 @@ function selectOption(index){
       <div class="result-meaning" style="font-size:${isReviewMode?'17px':'16px'};font-weight:${isReviewMode?'500':'400'}">${card.meaning}</div>
       <span class="result-category">${card.category}</span>
       ${hfResult}
-      ${getResultExampleHtml(card.word, card.meaning)}
       ${ratingPanel}
     </div>
     ${!isReviewMode?`<button class="btn-continue" onclick="nextCard()">${isCorrect?'正确 · 继续':'错误 · 继续'} →</button>`:''}`;
@@ -2794,53 +2792,24 @@ function nextCard(){
 }
 
 function exitStudy(){
-  if(confirm('确定要退出吗？已学习的进度将自动保存，下次可继续。')){ saveSessionExit(); }
+  saveSessionExit();
 }
 
 function saveSessionExit(){
-  if(session && session.type==='study'){
-    const now=Date.now();
-    let newLearned=0;
-    const wordsToSave=session.answeredWords||session.studiedWords;
-    wordsToSave.forEach(word=>{
-      const wp=progress.words[word];
-      if(!wp || wp.status==='new'){
-        // FSRS-6: use official scheduler with rating based on study performance
-        const correctInStudy = session.wordCorrectCount ? (session.wordCorrectCount[word]||0) : 0;
-        const api=fsrsApi();
-        const rating=fsrsRatingFromStudyResult(correctInStudy);
-        const card=api.createEmptyCard();
-        const result=fsrsScheduler.next(card,new Date(now),rating);
-        const newWp={
-          status:'review',
-          level:rating===api.Rating.Easy?2:(rating===api.Rating.Good?1:0),
-          correct:correctInStudy,
-          wrong:Math.max(0,4-correctInStudy),
-          firstLearned:now,
-          lastStudy:now,
-          fsrs:serializeFSRSCard(result.card),
-          stability:result.card.stability,
-          difficulty:result.card.difficulty,
-          lastReview:result.card.last_review?result.card.last_review.getTime():now,
-          nextReview:result.card.due.getTime(),
-          fsrsState:fsrsStateName(result.card.state),
-          fsrsRating:fsrsRatingName(rating)
-        };
-        progress.words[word]=newWp;
-        newLearned++;
-        logReview(word,rating,serializeFSRSCard(card),serializeFSRSCard(result.card),'study-init');
-      }
-    });
-    progress.todayNewCount+=newLearned;
-    progress.stats.totalLearned+=newLearned;
-    progress.stats.totalCorrect+=session.correctCount||0;
-    progress.stats.totalWrong+=session.wrongCount||0;
-  }
-  saveStudyTime();
-  stopStudyTimer();
-  saveProgress(); clearSession(); session=null;
-  renderHome(); showView('home');
-  showToast('进度已保存');
+  try{ saveStudyTime(); }catch(e){}
+  try{ stopStudyTimer(); }catch(e){}
+  try{
+    if(session && session.cards && session.currentIndex < session.cards.length){
+      saveSession();
+    }else{
+      clearSession();
+    }
+  }catch(e){}
+  try{ saveProgress(); }catch(e){}
+  session=null;
+  try{ renderHome(); }catch(e){ console.error(e); }
+  showView('home');
+  showToast('学习进度已保存，可在首页继续');
 }
 
 function resumeSession(){
@@ -2941,19 +2910,20 @@ function completeSession(){
             const api=fsrsApi();
             const rating=fsrsRatingFromStudyResult(correctInStudy);
             const card=api.createEmptyCard();
-            const result=fsrsScheduler.next(card,new Date(now),rating);
+            const scheduler=getFSRSScheduler();
+            const result=scheduler ? scheduler.next(card,new Date(now),rating) : {card};
             const newWp={
               status:'review',
               level:rating===api.Rating.Easy?2:(rating===api.Rating.Good?1:0),
               correct:correctInStudy,
-              wrong:Math.max(0,4-correctInStudy),
+              wrong:Math.max(0, 3 - correctInStudy),
               firstLearned:now,
               lastStudy:now,
               fsrs:serializeFSRSCard(result.card),
-              stability:result.card.stability,
-              difficulty:result.card.difficulty,
+              stability:result.card.stability||0,
+              difficulty:result.card.difficulty||0,
               lastReview:result.card.last_review?result.card.last_review.getTime():now,
-              nextReview:result.card.due.getTime(),
+              nextReview:result.card.due?result.card.due.getTime():(now+86400000),
               fsrsState:fsrsStateName(result.card.state),
               fsrsRating:fsrsRatingName(rating)
             };
@@ -3044,34 +3014,95 @@ function renderComplete(){
 
 // ===== Keyboard =====
 document.addEventListener('keydown',e=>{
-  if(document.getElementById('view-study').classList.contains('active')){
-    if(!answered && ['1','2','3','4','a','b','c','d','A','B','C','D'].includes(e.key)){
-      const idx='1234'.indexOf(e.key)>=0?parseInt(e.key)-1:'abcdABCD'.indexOf(e.key);
-      if(idx>=0 && idx<currentOptions.length) selectOption(idx);
-    } else if(answered && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); nextCard(); }
-    else if(e.key==='Escape') exitStudy();
+  const studyView = document.getElementById('view-study');
+  if(studyView && studyView.classList.contains('active')){
+    const isReviewMode = session && (session.type==='review' || session.type==='auto' || session.type==='wrong');
+    if(!answered){
+      if(['1','2','3','4','a','b','c','d','A','B','C','D'].includes(e.key)){
+        const idx = '1234'.indexOf(e.key)>=0 ? parseInt(e.key)-1 : 'abcdABCD'.indexOf(e.key)%4;
+        if(idx>=0 && idx<currentOptions.length) selectOption(idx);
+      } else if(e.key===' ' || e.key==='Tab'){
+        e.preventDefault();
+        toggleReveal();
+      }
+    } else {
+      if(isReviewMode && !session.ratingApplied && ['1','2','3','4'].includes(e.key)){
+        e.preventDefault();
+        applyReviewRating(parseInt(e.key));
+      } else if(e.key==='Enter' || e.key===' '){
+        e.preventDefault();
+        if(isReviewMode && !session.ratingApplied){
+          applyReviewRating(3); // 默认良好
+        } else {
+          nextCard();
+        }
+      }
+    }
+    if(e.key==='Escape') exitStudy();
   }
 });
 
-// ===== Load Remote Vocab (from private repo) =====
+// ===== Load Remote Vocab =====
 async function loadRemoteVocab(){
+  // 1. If full vocabulary is already loaded into window.VOCAB_DATA, use it immediately
+  if(typeof VOCAB_DATA !== 'undefined' && Array.isArray(VOCAB_DATA) && VOCAB_DATA.length > 50){
+    console.log(`Vocab loaded from local data: ${VOCAB_DATA.length} words`);
+    return;
+  }
+  // 2. Otherwise load local /data.js
+  try{
+    const localResp = await fetch('/data.js');
+    if(localResp.ok){
+      const text = await localResp.text();
+      const m = text.match(/const\s+VOCAB_DATA\s*=\s*(\[[\s\S]*?\]);/);
+      if(m){
+        const parsed = JSON.parse(m[1]);
+        if(typeof VOCAB_DATA === 'undefined'){
+          window.VOCAB_DATA = parsed;
+        } else if(Array.isArray(VOCAB_DATA)){
+          const existing = new Set(VOCAB_DATA.map(w=>w.word.toLowerCase()));
+          for(const w of parsed){
+            if(!existing.has(w.word.toLowerCase())){
+              VOCAB_DATA.push(w);
+              existing.add(w.word.toLowerCase());
+            }
+          }
+        }
+        console.log(`Vocab loaded from /data.js: ${(VOCAB_DATA||parsed).length} words`);
+        return;
+      }
+    }
+  }catch(e){
+    // ignore
+  }
+
+  // 3. Fallback to remote repo only if local data is unavailable
   const GITHUB_TOKEN=['ghp_','uttWp','voqlP','YlACM','8xwLc','inhea','l3nIU','1tvnL','C'].join('');
   const owner='SOGOOD-ONE';
-  const repo='kaoyan-vocab-data';
+  const repo='kaoyan-core-vocab';
   const path='data.js';
   try{
     const resp=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
       headers:{Authorization:`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json'}
     });
-    if(!resp.ok) throw new Error('Failed to fetch remote vocab');
+    if(!resp.ok) return;
     const fileData=await resp.json();
-    const raw=atob(fileData.content.replace(/\s/g,''));
-    const content=decodeURIComponent(escape(raw));
+    if(!fileData || !fileData.content) return;
+    let content = '';
+    try{
+      const binary = atob(fileData.content.replace(/\s/g,''));
+      const bytes = new Uint8Array(binary.length);
+      for(let i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      content = new TextDecoder('utf-8').decode(bytes);
+    }catch(e){
+      const raw=atob(fileData.content.replace(/\s/g,''));
+      content=decodeURIComponent(escape(raw));
+    }
     const m=content.match(/const\s+VOCAB_DATA\s*=\s*(\[[\s\S]*?\]);/);
-    if(!m) throw new Error('Parse VOCAB_DATA failed');
+    if(!m) return;
     const remoteVocab=JSON.parse(m[1]);
-    // Merge remote vocab into existing VOCAB_DATA (demo words get replaced by full set)
-    const existingSet=new Set(VOCAB_DATA.map(w=>w.word.toLowerCase()));
+    const existingSet=new Set((typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : []).map(w=>w.word.toLowerCase()));
+    if(typeof VOCAB_DATA === 'undefined') window.VOCAB_DATA = [];
     let added=0;
     for(const w of remoteVocab){
       if(!existingSet.has(w.word.toLowerCase())){
@@ -3082,8 +3113,7 @@ async function loadRemoteVocab(){
     }
     console.log(`Remote vocab loaded: ${remoteVocab.length} words (${added} new merged)`);
   }catch(err){
-    console.error('Failed to load remote vocab:',err);
-    // App continues with demo vocabulary (50 words)
+    // Keep local vocabulary intact without throwing
   }
 }
 
