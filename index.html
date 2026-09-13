@@ -221,11 +221,11 @@ body{
   background:var(--primary-container);color:var(--on-primary-container);font-size:13px;font-weight:600}
 
 /* ===== Study ===== */
-.study-topbar{display:flex;align-items:center;padding:14px 18px;gap:12px;position:sticky;top:0;background:var(--background);z-index:10}
+.study-topbar{display:flex;align-items:center;padding:14px 18px;gap:12px;position:sticky;top:0;background:var(--background);z-index:10;transform:translateZ(0)}
 .back-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--surface);
   color:var(--on-surface);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:var(--shadow-sm);border:1px solid var(--outline-variant);transition:all .15s ease;
-  user-select:none;-webkit-tap-highlight-color:transparent;
+  box-shadow:var(--shadow-sm);border:1px solid var(--outline-variant);transition:background-color .12s ease, transform .08s ease;
+  user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
 .back-btn:hover{background:var(--primary-container);color:var(--primary)}
 .back-btn:active{transform:scale(0.92)}
@@ -234,9 +234,9 @@ body{
 .pass-badge{padding:5px 14px;border-radius:20px;background:var(--primary-container);color:var(--on-primary-container);font-size:12px;font-weight:600;flex-shrink:0}
 
 .study-bar{height:3px;background:var(--outline-variant);margin:0 18px;border-radius:2px;overflow:hidden}
-.study-bar-fill{height:100%;background:var(--primary);border-radius:2px;transition:width .3s ease}
+.study-bar-fill{height:100%;background:var(--primary);border-radius:2px;transition:width .2s ease;will-change:width;transform:translateZ(0)}
 
-.card-container{padding:20px 18px}
+.card-container{padding:20px 18px;transform:translateZ(0)}
 
 /* Word Card - New Design */
 .word-card{
@@ -266,12 +266,13 @@ body{
 .word-speak-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px}
 
 .question-card{
-  background:var(--surface);border-radius:var(--radius-xl);padding:32px 24px;
-  text-align:center;margin-bottom:20px;min-height:160px;
+  background:var(--surface);border-radius:var(--radius-xl);padding:28px 22px;
+  text-align:center;margin-bottom:18px;min-height:150px;
   display:flex;flex-direction:column;justify-content:center;align-items:center;
   box-shadow:var(--shadow-md);border:1px solid var(--outline-variant);
+  transform:translateZ(0);
 }
-.question-hint{font-size:13px;color:var(--on-surface-variant);margin-bottom:12px}
+.question-hint{font-size:13px;color:var(--on-surface-variant);margin-bottom:10px}
 .question-text{font-size:28px;font-weight:700;color:var(--on-surface);line-height:1.4;word-break:break-word}
 .question-type{font-size:14px;color:var(--on-surface-variant);margin-top:8px}
 
@@ -279,11 +280,17 @@ body{
 .option-btn{
   display:flex;align-items:center;gap:12px;padding:14px 18px;
   border-radius:var(--radius-md);border:2px solid var(--outline);background:var(--surface);
-  font-size:15px;cursor:pointer;transition:all .2s;text-align:left;
-  color:var(--on-surface);line-height:1.4;
+  font-size:15px;cursor:pointer;
+  transition:border-color .12s ease, background-color .12s ease, transform .08s ease, box-shadow .12s ease;
+  text-align:left;color:var(--on-surface);line-height:1.4;
   box-shadow:var(--shadow-sm);
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transform:translateZ(0);
+  will-change:transform;
 }
 .option-btn:hover:not(.disabled){border-color:var(--primary);background:var(--primary-light)}
+.option-btn:active:not(.disabled){transform:scale(0.985)}
 .option-btn.disabled{cursor:default}
 .option-btn.correct{border-color:var(--success);background:var(--success-container);color:var(--on-success)}
 .option-btn.wrong{border-color:var(--error);background:var(--error-container);color:var(--on-error)}
@@ -297,21 +304,24 @@ body{
 .reveal-btn{
   display:block;width:100%;margin-bottom:14px;padding:11px;
   border-radius:var(--radius-md);border:1px dashed var(--primary);background:var(--primary-light);
-  color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;
+  color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;
+  transition:background-color .12s ease, border-color .12s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 .reveal-btn:hover{background:var(--primary-container)}
 .reveal-btn.revealed{border-style:solid;background:var(--surface);color:var(--on-surface-variant);border-color:var(--outline)}
 
-.ignore-row{margin-top:12px;text-align:center}
+.ignore-row{margin-top:14px;text-align:center}
 .ignore-btn{
   padding:8px 20px;border-radius:20px;border:1px solid #E53E3E;
   background:transparent;color:#E53E3E;font-size:13px;font-weight:500;
-  cursor:pointer;transition:all .2s;
+  cursor:pointer;transition:background-color .12s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 .ignore-btn:hover{background:#FFF5F5}
 
-.result-card{margin-top:20px;padding:20px;border-radius:16px;background:var(--surface-variant);
-  animation:fadeIn .3s ease;position:relative}
+.result-card{margin-top:16px;padding:18px 20px;border-radius:16px;background:var(--surface-variant);
+  animation:fadeIn .15s ease;position:relative;transform:translateZ(0)}
 .result-word{font-size:22px;font-weight:700;color:var(--primary)}
 .result-type{font-size:14px;color:var(--on-surface-variant);margin-top:4px}
 .result-meaning{font-size:16px;color:var(--on-surface);margin-top:8px;line-height:1.5}
@@ -320,22 +330,26 @@ body{
 
 .speak-btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--primary);
   color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px rgba(0,120,212,.25)}
+  flex-shrink:0;transition:transform .08s ease, background-color .12s ease;box-shadow:0 2px 8px rgba(0,120,212,.25);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .speak-btn:hover{background:#106EBE;transform:scale(1.05)}
 .speak-btn:active{transform:scale(.95)}
 .speak-btn.speaking{animation:pulse .6s ease infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .result-speak-btn{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;
   border:none;background:var(--primary);color:#fff;font-size:16px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all .2s}
+  display:flex;align-items:center;justify-content:center;transition:transform .08s ease, background-color .12s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .result-speak-btn:hover{background:#106EBE;transform:scale(1.05)}
 .result-speak-btn:active{transform:scale(.95)}
 .question-speak-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
 
-.btn-continue{display:block;width:100%;margin-top:20px;padding:16px;border-radius:16px;
-  border:none;background:var(--primary);color:#fff;font-size:17px;font-weight:600;
-  cursor:pointer;transition:all .2s;animation:fadeIn .3s ease}
+.btn-continue{display:block;width:100%;margin-top:16px;padding:15px;border-radius:16px;
+  border:none;background:var(--primary);color:#fff;font-size:16px;font-weight:600;
+  cursor:pointer;transition:background-color .12s ease, transform .08s ease;animation:fadeIn .15s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .btn-continue:hover{background:#106EBE}
+.btn-continue:active{transform:scale(0.985)}
 
 /* ===== Complete ===== */
 .complete-container{padding:60px 24px;text-align:center;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
@@ -385,28 +399,38 @@ body{
 
 /* ===== FSRS-6 Rating Panel ===== */
 /* ===== FSRS-6 Rating Panel - New Design ===== */
-.fsrs-rating-panel{margin-top:16px}
-.fsrs-rating-title{font-size:12px;color:var(--on-surface-variant);margin-bottom:10px;font-weight:600;text-align:center}
+.fsrs-rating-panel{margin-top:14px}
+.fsrs-rating-title{font-size:12px;color:var(--on-surface-variant);margin-bottom:8px;font-weight:600;text-align:center}
 .fsrs-rating-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .fsrs-rating-btn{
   border:2px solid var(--outline);background:var(--surface);
-  border-radius:var(--radius-md);padding:12px 6px;cursor:pointer;
-  font-weight:700;color:var(--on-surface);transition:all .15s;
+  border-radius:var(--radius-md);padding:10px 4px;cursor:pointer;
+  font-weight:700;color:var(--on-surface);
+  transition:background-color .12s ease, border-color .12s ease, transform .08s ease;
   font-size:14px;box-shadow:var(--shadow-sm);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transform:translateZ(0);will-change:transform;
 }
 .fsrs-rating-btn small{
-  display:block;font-weight:500;font-size:10px;margin-top:4px;
+  display:block;font-weight:500;font-size:10px;margin-top:2px;
   color:var(--on-surface-variant);
 }
-.fsrs-rating-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.fsrs-rating-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.fsrs-rating-btn:active:not(:disabled), .fsrs-rating-btn.active-selected{
+  transform:scale(0.95) !important;box-shadow:none !important;
+}
 .fsrs-rating-btn.again{color:#DC2626;border-color:#FECACA}
 .fsrs-rating-btn.again:hover{background:#FEF2F2;border-color:#FCA5A5}
+.fsrs-rating-btn.again.active-selected{background:#FEE2E2 !important;border-color:#EF4444 !important;opacity:1 !important}
 .fsrs-rating-btn.hard{color:#EA580C;border-color:#FED7AA}
 .fsrs-rating-btn.hard:hover{background:#FFF7ED;border-color:#FDBA74}
+.fsrs-rating-btn.hard.active-selected{background:#FFEDD5 !important;border-color:#F97316 !important;opacity:1 !important}
 .fsrs-rating-btn.good{color:#059669;border-color:#BBF7D0}
 .fsrs-rating-btn.good:hover{background:#F0FDF4;border-color:#86EFAC}
+.fsrs-rating-btn.good.active-selected{background:#DCFCE7 !important;border-color:#10B981 !important;opacity:1 !important}
 .fsrs-rating-btn.easy{color:#2563EB;border-color:#BFDBFE}
 .fsrs-rating-btn.easy:hover{background:#EFF6FF;border-color:#93C5FD}
+.fsrs-rating-btn.easy.active-selected{background:#DBEAFE !important;border-color:#3B82F6 !important;opacity:1 !important}
 .fsrs-rating-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 .fsrs-state-badge{
   margin-top:10px;padding:8px 14px;border-radius:var(--radius-sm);
@@ -929,7 +953,28 @@ function showView(id){
 
 // 词库缓存：getAllVocab() 会被十几个统计函数反复调用，词库没变时直接复用
 let _vocabCache=null, _vocabCacheSrc=null, _vocabCacheSrcLen=-1, _vocabCacheCustom=null, _vocabCacheCustomLen=-1;
-function invalidateVocabCache(){ _vocabCache=null; }
+let _vocabByCategory=null, _hfCountCache=null;
+
+function invalidateVocabCache(){
+  _vocabCache=null;
+  _vocabByCategory=null;
+  _hfCountCache=null;
+}
+
+function getVocabCategoryMap(){
+  if(_vocabByCategory) return _vocabByCategory;
+  const all = getAllVocab();
+  const map = new Map();
+  for(let i=0; i<all.length; i++){
+    const w = all[i];
+    const cat = w.category || '默认';
+    let list = map.get(cat);
+    if(!list){ list = []; map.set(cat, list); }
+    list.push(w);
+  }
+  _vocabByCategory = map;
+  return _vocabByCategory;
+}
 
 function getAllVocab(){
   const custom = Array.isArray(customVocab) ? customVocab : [];
@@ -959,21 +1004,33 @@ function getAllVocab(){
   }
   _vocabCache=merged; _vocabCacheSrc=VOCAB_DATA; _vocabCacheSrcLen=srcLen;
   _vocabCacheCustom=customVocab; _vocabCacheCustomLen=custom.length;
+  _vocabByCategory=null;
   return merged;
 }
 
 function getWordHfCount(word){
+  if(!word) return 0;
   const key=word.toLowerCase();
-  const cv=customVocab.find(c=>c.word.toLowerCase()===key);
-  if(cv && cv.hfCount) return cv.hfCount;
-  if(progress && progress.hfOverrides && progress.hfOverrides[key]) return progress.hfOverrides[key];
-  return 0;
+  if(progress && progress.hfOverrides && progress.hfOverrides[key] !== undefined){
+    return progress.hfOverrides[key];
+  }
+  if(!_hfCountCache){
+    _hfCountCache = new Map();
+    if(Array.isArray(customVocab)){
+      for(let i=0; i<customVocab.length; i++){
+        const cv = customVocab[i];
+        if(cv && cv.word && cv.hfCount) _hfCountCache.set(cv.word.toLowerCase(), cv.hfCount);
+      }
+    }
+  }
+  return _hfCountCache.get(key) || 0;
 }
 
 // ===== Text-to-Speech =====
 let ttsVoice = null;
 let ttsUnlocked = false;
 let ttsAvailable = ('speechSynthesis' in window) && (typeof SpeechSynthesisUtterance !== 'undefined');
+let _sharedAudio = null;
 
 function loadTTSVoice(){
   if(!ttsAvailable) return;
@@ -1004,33 +1061,24 @@ function unlockTTS(){
 });
 
 function speakWord(word, btnEl){
+  if(!word) return;
   if(ttsAvailable){
     try{ speechSynthesis.resume(); }catch(e){}
-    speechSynthesis.cancel();
-    setTimeout(()=>{
-      const utter = new SpeechSynthesisUtterance(word);
-      utter.lang = 'en-US'; utter.rate = 0.9; utter.pitch = 1; utter.volume = 1;
-      if(ttsVoice) utter.voice = ttsVoice;
-      if(btnEl){
-        btnEl.classList.add('speaking');
-        utter.onend = ()=>{ btnEl.classList.remove('speaking'); };
-        utter.onerror = ()=>{ btnEl.classList.remove('speaking'); speakOnline(word, btnEl); };
-      }
-      try{
-        speechSynthesis.speak(utter);
-        setTimeout(()=>{ try{ speechSynthesis.resume(); }catch(e){} }, 100);
-        setTimeout(()=>{
-          if(btnEl && btnEl.classList.contains('speaking')){
-            try{ speechSynthesis.cancel(); }catch(e){}
-            btnEl.classList.remove('speaking');
-            speakOnline(word, btnEl);
-          }
-        }, 3000);
-      }catch(e){
-        if(btnEl) btnEl.classList.remove('speaking');
-        speakOnline(word, btnEl);
-      }
-    }, 50);
+    try{ speechSynthesis.cancel(); }catch(e){}
+    const utter = new SpeechSynthesisUtterance(word);
+    utter.lang = 'en-US'; utter.rate = 0.95; utter.pitch = 1; utter.volume = 1;
+    if(ttsVoice) utter.voice = ttsVoice;
+    if(btnEl){
+      btnEl.classList.add('speaking');
+      utter.onend = ()=>{ btnEl.classList.remove('speaking'); };
+      utter.onerror = ()=>{ btnEl.classList.remove('speaking'); speakOnline(word, btnEl); };
+    }
+    try{
+      speechSynthesis.speak(utter);
+    }catch(e){
+      if(btnEl) btnEl.classList.remove('speaking');
+      speakOnline(word, btnEl);
+    }
     return;
   }
   speakOnline(word, btnEl);
@@ -1038,14 +1086,17 @@ function speakWord(word, btnEl){
 
 function speakOnline(word, btnEl){
   try{
+    if(!_sharedAudio){
+      _sharedAudio = new Audio();
+    }
     const url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(word)+'&type=2';
-    const audio=new Audio(url);
     if(btnEl){
       btnEl.classList.add('speaking');
-      audio.onended=()=>{ btnEl.classList.remove('speaking'); };
-      audio.onerror=()=>{ btnEl.classList.remove('speaking'); };
+      _sharedAudio.onended=()=>{ btnEl.classList.remove('speaking'); };
+      _sharedAudio.onerror=()=>{ btnEl.classList.remove('speaking'); };
     }
-    audio.play().catch(()=>{ if(btnEl) btnEl.classList.remove('speaking'); });
+    _sharedAudio.src = url;
+    _sharedAudio.play().catch(()=>{ if(btnEl) btnEl.classList.remove('speaking'); });
   }catch(e){ if(btnEl) btnEl.classList.remove('speaking'); }
 }
 
@@ -1571,13 +1622,13 @@ async function loadProgressFromDB(){
 // 评分、切卡会在很短时间内多次触发保存。合并成一次写入，避免每张卡都做
 // 多次 JSON.stringify + 同步 localStorage 写入阻塞主线程。
 // flushPersistence 会在页面隐藏/卸载前强制落盘。
-const PERSIST_DELAY=150;
+const PERSIST_DELAY=1000;
 let _persistTimer=null, _progressDirty=false, _sessionDirty=false;
 
-function flushPersistence(){
+function flushPersistence(forceSync){
   if(_persistTimer){ clearTimeout(_persistTimer); _persistTimer=null; }
-  if(_progressDirty){ _progressDirty=false; writeProgressNow(); }
   if(_sessionDirty){ _sessionDirty=false; writeSessionNow(); }
+  if(_progressDirty){ _progressDirty=false; writeProgressNow(forceSync); }
 }
 
 // 丢弃挂起的写入。删除/切换用户这类操作必须先调用，
@@ -1595,11 +1646,23 @@ function schedulePersist(){
 function saveProgress(){ _progressDirty=true; schedulePersist(); }
 function saveSession(){ _sessionDirty=true; schedulePersist(); }
 
-function writeProgressNow(){
+function writeProgressNow(forceSync){
   if(!progress) return;
-  const key = getStorageKey('vocabProgress');
-  if(storageAvailable){ try{ localStorage.setItem(key, JSON.stringify(progress)); }catch(e){} }
-  if(dbInstance){ dbSet(key, progress); }
+  const doWrite = () => {
+    try{
+      const key = getStorageKey('vocabProgress');
+      if(storageAvailable){ try{ localStorage.setItem(key, JSON.stringify(progress)); }catch(e){} }
+      if(dbInstance){ dbSet(key, progress); }
+    }catch(e){}
+  };
+  // 平时用空闲回调把大 JSON 的写盘推迟到浏览器空闲时，避免卡顿。
+  // 但页面隐藏/卸载时的强制落盘必须同步执行：那一刻 idle 回调通常不会再跑，
+  // 而 _progressDirty 已经清空 → 这次进度会被静默丢掉。
+  if(!forceSync && typeof window !== 'undefined' && 'requestIdleCallback' in window){
+    window.requestIdleCallback(doWrite, {timeout: 800});
+  } else {
+    doWrite();
+  }
 }
 
 // ===== Session Persistence =====
@@ -1632,8 +1695,8 @@ function writeSessionNow(){
   }catch(e){}
 }
 
-window.addEventListener('pagehide', flushPersistence);
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushPersistence(); });
+window.addEventListener('pagehide', ()=>{ flushPersistence(true); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushPersistence(true); });
 
 function loadSession(){
   // 有挂起的写入先落盘，避免读到旧状态（例如刚结束学习就要显示“继续学习”横幅）
@@ -1810,81 +1873,148 @@ function getAutoReviewWords(){
   const result = [];
 
   // 1. Include due words first (expired first, then today's)
-  // 默认模式：所有已到期的词（含逾期），按"最该复习"排序（逾期最久的优先）
-  // 固定数量模式：所有到期词 + 补充未到期的
   const dueCutoff = Date.now();
-  const dueWords = learnedWords.filter(w=>{
-    const wp=progress.words[w.word];
-    if(!wp.nextReview || wp.nextReview>dueCutoff) return false;
-    return true; // FSRS-6: include all learning states (Learning/Review/Relearning)
-  });
+  const dueCandidates = [];
+  for(let i=0; i<learnedWords.length; i++){
+    const w = learnedWords[i];
+    const wp = progress.words[w.word];
+    if(wp && wp.nextReview && wp.nextReview<=dueCutoff){
+      dueCandidates.push({
+        word: w,
+        nextReview: wp.nextReview || 0,
+        retrievability: fsrsRetrievability(wp),
+        wrong: wp.wrong || 0
+      });
+    }
+  }
+
   // Sort due words: overdue first (most expired first), then by retrievability
-  dueWords.sort((a,b)=>{
-    const wpA = progress.words[a.word]||{};
-    const wpB = progress.words[b.word]||{};
-    // 逾期最久的排前面
-    const expireDiff = (wpA.nextReview||0) - (wpB.nextReview||0);
-    if(Math.abs(expireDiff)>3600000) return expireDiff; // 差超过1小时按到期时间排
-    // 同时间的按回忆率从低到高
-    const rDiff = fsrsRetrievability(wpA) - fsrsRetrievability(wpB);
+  dueCandidates.sort((a,b)=>{
+    const expireDiff = a.nextReview - b.nextReview;
+    if(Math.abs(expireDiff)>3600000) return expireDiff;
+    const rDiff = a.retrievability - b.retrievability;
     if(Math.abs(rDiff)>0.01) return rDiff;
-    return (wpB.wrong||0)-(wpA.wrong||0);
+    return b.wrong - a.wrong;
   });
-  for(const w of dueWords){
+
+  for(let i=0; i<dueCandidates.length; i++){
     if(result.length>=takeCount) break;
-    if(!selectedSet.has(w.word)){ selectedSet.add(w.word); result.push(w); }
+    const item = dueCandidates[i].word;
+    if(!selectedSet.has(item.word)){
+      selectedSet.add(item.word);
+      result.push(item);
+    }
   }
 
   // 2. Fill remaining with non-due learned words, sorted by retrievability
-  // 仅当固定数量模式且到期词不够时才补充未到期的
   if(!isDefaultMode && result.length<takeCount){
-    const remaining = learnedWords.filter(w=>!selectedSet.has(w.word));
-    remaining.sort((a,b)=>{
-      const rDiff = fsrsRetrievability(progress.words[a.word]||{}) - fsrsRetrievability(progress.words[b.word]||{});
+    const remainingCandidates = [];
+    for(let i=0; i<learnedWords.length; i++){
+      const w = learnedWords[i];
+      if(!selectedSet.has(w.word)){
+        const wp = progress.words[w.word] || {};
+        remainingCandidates.push({
+          word: w,
+          retrievability: fsrsRetrievability(wp),
+          wrong: wp.wrong || 0
+        });
+      }
+    }
+    remainingCandidates.sort((a,b)=>{
+      const rDiff = a.retrievability - b.retrievability;
       if(Math.abs(rDiff)>0.01) return rDiff;
-      return (progress.words[b.word]?.wrong||0)-(progress.words[a.word]?.wrong||0);
+      return b.wrong - a.wrong;
     });
-    const shuffled = remaining;
-    for(const w of shuffled){
+    for(let i=0; i<remainingCandidates.length; i++){
       if(result.length>=takeCount) break;
-      selectedSet.add(w.word); result.push(w);
+      const item = remainingCandidates[i].word;
+      selectedSet.add(item.word);
+      result.push(item);
     }
   }
 
   return shuffle(result);
 }
 
-// ===== Generate Options =====
+// ===== Generate Options (High-Performance O(1) Sampler) =====
 function generateOptions(card){
   const isCn2En = card.passType==='cn2en';
   const correctVal = isCn2En ? card.word : card.meaning;
-  const allVocab=getAllVocab();
-  const sameCat = allVocab.filter(w=>w.word!==card.word && w.category===card.category);
-  const otherCat = allVocab.filter(w=>w.word!==card.word && w.category!==card.category);
-  const correctLen = isCn2En ? card.word.length : card.meaning.length;
+  const correctLen = correctVal.length;
+  const targetFirstChar = correctVal[0] ? correctVal[0].toLowerCase() : '';
+
+  const catMap = getVocabCategoryMap();
+  const sameCatList = (catMap.get(card.category) || []);
+  const allVocab = getAllVocab();
+
+  // Fast score function
   const scoreWord = (w)=>{
     const val = isCn2En ? w.word : w.meaning;
-    const lenDiff = Math.abs(val.length - correctLen);
-    let score = -lenDiff;
-    if(val[0] && correctVal[0] && val[0].toLowerCase()===correctVal[0].toLowerCase()) score += 5;
+    if(!val) return -999;
+    let score = -Math.abs(val.length - correctLen);
+    if(targetFirstChar && val[0] && val[0].toLowerCase()===targetFirstChar) score += 5;
     return score;
   };
-  const scoredSame = sameCat.map(w=>({w, s:scoreWord(w)})).sort((a,b)=>b.s-a.s).map(x=>x.w);
-  const scoredOther = otherCat.map(w=>({w, s:scoreWord(w)})).sort((a,b)=>b.s-a.s).map(x=>x.w);
-  const pool = scoredSame.concat(scoredOther);
-  const options=[correctVal];
-  const optionWords=[card]; // Track the vocab entry for each option
-  const seenVals=new Set([correctVal.toLowerCase()]);
-  for(const w of pool){
+
+  // Sample up to 30 from same category, avoiding entire 4k scans
+  const sampleCandidates = [];
+  const pickedIndices = new Set();
+  const sameLen = sameCatList.length;
+  const sampleSameCount = Math.min(30, sameLen);
+  for(let i=0; i<sampleSameCount; i++){
+    const idx = (Math.random() * sameLen) | 0;
+    if(!pickedIndices.has(idx)){
+      pickedIndices.add(idx);
+      const w = sameCatList[idx];
+      if(w && w.word !== card.word) sampleCandidates.push(w);
+    }
+  }
+
+  // Sample up to 25 from general vocab for fallback
+  const totalVocabLen = allVocab.length;
+  const sampleOtherCount = Math.min(25, totalVocabLen);
+  for(let i=0; i<sampleOtherCount; i++){
+    const idx = (Math.random() * totalVocabLen) | 0;
+    const w = allVocab[idx];
+    if(w && w.word !== card.word) sampleCandidates.push(w);
+  }
+
+  // Score candidate slice
+  sampleCandidates.sort((a,b)=>scoreWord(b) - scoreWord(a));
+
+  const options = [correctVal];
+  const optionWords = [card];
+  const seenVals = new Set([correctVal.toLowerCase()]);
+
+  for(let i=0; i<sampleCandidates.length; i++){
     if(options.length>=4) break;
+    const w = sampleCandidates[i];
     const val = isCn2En ? w.word : w.meaning;
-    if(!seenVals.has(val.toLowerCase())){
+    if(val && !seenVals.has(val.toLowerCase())){
       options.push(val);
       optionWords.push(w);
       seenVals.add(val.toLowerCase());
     }
   }
-  while(options.length<4){ options.push(options[0]); optionWords.push(optionWords[0]); }
+
+  // Guaranteed fallback to 4 options
+  let fallbackIdx = 0;
+  while(options.length<4 && fallbackIdx<allVocab.length){
+    const w = allVocab[fallbackIdx++];
+    if(w && w.word !== card.word){
+      const val = isCn2En ? w.word : w.meaning;
+      if(val && !seenVals.has(val.toLowerCase())){
+        options.push(val);
+        optionWords.push(w);
+        seenVals.add(val.toLowerCase());
+      }
+    }
+  }
+  while(options.length<4){
+    options.push(options[0]);
+    optionWords.push(optionWords[0]);
+  }
+
   const shuffled = shuffle(options.map((v,i)=>({val:v, word:optionWords[i]})));
   return {options: shuffled.map(x=>x.val), optionWords: shuffled.map(x=>x.word)};
 }
@@ -2550,6 +2680,67 @@ function _legacy_startReview(){
   renderCard();
 }
 
+function ensureStudyViewMounted(){
+  const studyView = document.getElementById('view-study');
+  if(!studyView) return null;
+  let container = document.getElementById('study-card-container');
+  if(container) return container;
+  studyView.innerHTML = `
+    <div class="study-topbar">
+      <button class="back-btn" id="study-back-btn" onclick="exitStudy()" title="返回首页" aria-label="返回首页">←</button>
+      <div class="study-progress" id="study-progress-text">0 <span>/ 0</span></div>
+      <div class="pass-badge" id="study-pass-badge" style="display:none">重测</div>
+    </div>
+    <div class="study-bar"><div class="study-bar-fill" id="study-bar-fill" style="width:0%"></div></div>
+    <div class="card-container" id="study-card-container">
+      <div class="question-card" id="study-question-card">
+        <div class="question-hint" id="study-question-hint"></div>
+        <div class="question-text" id="study-question-text"></div>
+        <div class="question-type" id="study-question-type" style="display:none"></div>
+        <div class="question-hf-hint" id="study-hf-badge" style="display:none"></div>
+        <div class="question-speak-row" id="study-speak-row" style="display:none">
+          <button class="speak-btn" id="study-question-speak-btn">🔊</button>
+        </div>
+      </div>
+      <button class="reveal-btn" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button>
+      <div class="options" id="options">
+        <button class="option-btn" id="opt-btn-0" data-index="0" onclick="selectOption(0)">
+          <span class="option-label">A</span>
+          <div style="flex:1">
+            <div id="opt-text-0"></div>
+            <div class="option-translation" id="trans-0"></div>
+          </div>
+        </button>
+        <button class="option-btn" id="opt-btn-1" data-index="1" onclick="selectOption(1)">
+          <span class="option-label">B</span>
+          <div style="flex:1">
+            <div id="opt-text-1"></div>
+            <div class="option-translation" id="trans-1"></div>
+          </div>
+        </button>
+        <button class="option-btn" id="opt-btn-2" data-index="2" onclick="selectOption(2)">
+          <span class="option-label">C</span>
+          <div style="flex:1">
+            <div id="opt-text-2"></div>
+            <div class="option-translation" id="trans-2"></div>
+          </div>
+        </button>
+        <button class="option-btn" id="opt-btn-3" data-index="3" onclick="selectOption(3)">
+          <span class="option-label">D</span>
+          <div style="flex:1">
+            <div id="opt-text-3"></div>
+            <div class="option-translation" id="trans-3"></div>
+          </div>
+        </button>
+      </div>
+      <div class="ignore-row" id="study-ignore-row">
+        <button class="ignore-btn" onclick="ignoreCurrentWord()">✗ 太简单了，斩掉</button>
+      </div>
+      <div id="study-result-area"></div>
+    </div>`;
+  return document.getElementById('study-card-container');
+}
+
 function renderCard(){
   if(!session || session.currentIndex>=session.cards.length){ completeSession(); return; }
   saveSession();
@@ -2568,41 +2759,79 @@ function renderCard(){
   const total=session.cards.length;
   const idx=session.currentIndex+1;
   const hfCount=getWordHfCount(card.word);
-  const hfBadge=hfCount>=3?`<div class="question-hf-hint">高频词 · 出现${hfCount}次 · 重点记忆</div>`:'';
 
-  // V5: Reveal button text
-  const revealLabel = isCn2En ? '查看选项释义' : '查看选项英文';
-  const html=`
-    <div class="study-topbar">
-      <button class="back-btn" id="study-back-btn" onclick="exitStudy()" title="返回首页" aria-label="返回首页">←</button>
-      <div class="study-progress">${idx} <span>/ ${total}</span></div>
-      ${card.isRetest ? '<div class="pass-badge">重测</div>' : ''}
-    </div>
-    <div class="study-bar"><div class="study-bar-fill" style="width:${(idx/total*100)}%"></div></div>
-    <div class="card-container">
-      <div class="question-card">
-        <div class="question-hint">${questionType}</div>
-        <div class="question-text">${escapeHtml(questionText)}</div>
-        ${wordType?'<div class="question-type">'+escapeHtml(wordType)+'</div>':''}
-        ${hfBadge}
-        ${!isCn2En?'<div class="question-speak-row"><button class="speak-btn" onclick="speakWord(\''+jsStringArg(card.word)+'\',this)">🔊</button></div>':''}
-      </div>
-      <button class="reveal-btn" id="reveal-btn" onclick="toggleReveal()">${revealLabel}</button>
-      <div class="options" id="options">
-        ${currentOptions.map((opt,i)=>`
-          <button class="option-btn" data-index="${i}" onclick="selectOption(${i})">
-            <span class="option-label">${String.fromCharCode(65+i)}</span>
-            <div style="flex:1">
-              <div>${escapeHtml(opt)}</div>
-              <div class="option-translation" id="trans-${i}">${escapeHtml(getOptionTranslation(i))}</div>
-            </div>
-          </button>`).join('')}
-      </div>
-      <div class="ignore-row">
-        <button class="ignore-btn" onclick="ignoreCurrentWord()">✗ 太简单了，斩掉</button>
-      </div>
-    </div>`;
-  document.getElementById('view-study').innerHTML=html;
+  ensureStudyViewMounted();
+
+  const progEl = document.getElementById('study-progress-text');
+  if(progEl) progEl.innerHTML = `${idx} <span>/ ${total}</span>`;
+
+  const passBadge = document.getElementById('study-pass-badge');
+  if(passBadge){
+    passBadge.style.display = card.isRetest ? 'block' : 'none';
+  }
+
+  const fillEl = document.getElementById('study-bar-fill');
+  if(fillEl) fillEl.style.width = (idx/total*100)+'%';
+
+  const hintEl = document.getElementById('study-question-hint');
+  if(hintEl) hintEl.textContent = questionType;
+
+  const qTextEl = document.getElementById('study-question-text');
+  if(qTextEl) qTextEl.textContent = questionText;
+
+  const qTypeEl = document.getElementById('study-question-type');
+  if(qTypeEl){
+    if(wordType){
+      qTypeEl.textContent = wordType;
+      qTypeEl.style.display = 'block';
+    } else {
+      qTypeEl.style.display = 'none';
+    }
+  }
+
+  const hfEl = document.getElementById('study-hf-badge');
+  if(hfEl){
+    if(hfCount>=3){
+      hfEl.textContent = `高频词 · 出现${hfCount}次 · 重点记忆`;
+      hfEl.style.display = 'block';
+    } else {
+      hfEl.style.display = 'none';
+    }
+  }
+
+  const speakRow = document.getElementById('study-speak-row');
+  const speakBtn = document.getElementById('study-question-speak-btn');
+  if(speakRow && speakBtn){
+    if(!isCn2En){
+      speakRow.style.display = 'flex';
+      speakBtn.onclick = function(){ speakWord(card.word, this); };
+    } else {
+      speakRow.style.display = 'none';
+    }
+  }
+
+  const revealBtn = document.getElementById('reveal-btn');
+  if(revealBtn){
+    revealBtn.className = 'reveal-btn';
+    revealBtn.textContent = isCn2En ? '查看选项释义' : '查看选项英文';
+  }
+
+  for(let i=0; i<4; i++){
+    const btn = document.getElementById('opt-btn-'+i);
+    const textEl = document.getElementById('opt-text-'+i);
+    const transEl = document.getElementById('trans-'+i);
+    if(btn){
+      btn.className = 'option-btn';
+    }
+    if(textEl) textEl.textContent = currentOptions[i] || '';
+    if(transEl) transEl.textContent = getOptionTranslation(i) || '';
+  }
+
+  const ignoreRow = document.getElementById('study-ignore-row');
+  if(ignoreRow) ignoreRow.style.display = 'block';
+
+  const resArea = document.getElementById('study-result-area');
+  if(resArea) resArea.innerHTML = '';
 }
 
 // V5: Get translation for an option
@@ -2619,19 +2848,22 @@ function getOptionTranslation(index){
 function toggleReveal(){
   revealed = !revealed;
   const btn = document.getElementById('reveal-btn');
-  if(revealed){
-    btn.classList.add('revealed');
-    btn.textContent = '隐藏释义';
-    document.querySelectorAll('.option-btn').forEach(btn=>{
+  const isCn2En = currentCard && currentCard.passType==='cn2en';
+  if(btn){
+    if(revealed){
       btn.classList.add('revealed');
-    });
-  } else {
-    btn.classList.remove('revealed');
-    const isCn2En = currentCard.passType==='cn2en';
-    btn.textContent = isCn2En ? '查看选项释义' : '查看选项英文';
-    document.querySelectorAll('.option-btn').forEach(btn=>{
+      btn.textContent = '隐藏释义';
+    } else {
       btn.classList.remove('revealed');
-    });
+      btn.textContent = isCn2En ? '查看选项释义' : '查看选项英文';
+    }
+  }
+  for(let i=0; i<4; i++){
+    const optBtn = document.getElementById('opt-btn-'+i);
+    if(optBtn){
+      if(revealed) optBtn.classList.add('revealed');
+      else optBtn.classList.remove('revealed');
+    }
   }
 }
 
@@ -2674,13 +2906,17 @@ function selectOption(index){
   const correctVal=isCn2En?card.word:card.meaning;
   const selectedVal=currentOptions[index];
   const isCorrect=selectedVal.toLowerCase()===correctVal.toLowerCase();
-  const btns=document.querySelectorAll('.option-btn');
-  btns.forEach((btn,i)=>{
-    btn.classList.add('disabled');
-    const val=currentOptions[i];
-    if(val.toLowerCase()===correctVal.toLowerCase()) btn.classList.add('correct');
-    else if(i===index) btn.classList.add('wrong');
-  });
+
+  for(let i=0; i<currentOptions.length; i++){
+    const btn=document.getElementById('opt-btn-'+i);
+    if(btn){
+      btn.classList.add('disabled');
+      const val=currentOptions[i];
+      if(val.toLowerCase()===correctVal.toLowerCase()) btn.classList.add('correct');
+      else if(i===index) btn.classList.add('wrong');
+    }
+  }
+
   if(isCorrect) session.correctCount++; else session.wrongCount++;
   if(session.answeredWords) session.answeredWords.add(card.word);
   // Track per-word correct count for study mode (to adjust initial FSRS stability)
@@ -2693,11 +2929,10 @@ function selectOption(index){
   // For review modes: track correct/wrong count but DON'T apply FSRS yet
   // User will select a rating (Again/Hard/Good/Easy) from the rating panel
   if(isReviewMode){
+    const wp=progress.words[card.word];
     if(isCorrect){
-      const wp=progress.words[card.word];
       if(wp){ wp.correct=(wp.correct||0)+1; progress.stats.totalCorrect++; }
     }else{
-      const wp=progress.words[card.word];
       if(wp){ wp.wrong=(wp.wrong||0)+1; progress.stats.totalWrong++; }
     }
     session.reviewResults[card.word]=isCorrect;
@@ -2710,52 +2945,8 @@ function selectOption(index){
     session.retestInserted.add(card.word);
   }
 
-  const retestBadge = card.isRetest ? ' · 重测' : '';
-  const autoBadge = card.isAutoReview ? ' · 自主复习' : '';
-  const wrongBadge = card.isWrongPractice ? ' · 错题本' : '';
   const hfCount=getWordHfCount(card.word);
   const hfResult=hfCount>=3?`<div class="result-hf-hint">高频词 · 出现${hfCount}次 · 重点记忆</div>`:'';
-
-  // FSRS info: show current state, stability, difficulty, retrievability
-  const wp=progress.words[card.word];
-  let fsrsInfo='';
-  let wordStatusBadge='';
-  if(wp && wp.fsrs){
-    const r=fsrsRetrievability(wp);
-    const sDays=wp.stability<1?Math.round(wp.stability*24)+'小时':Math.round(wp.stability*10)/10+'天';
-    const dLevel=wp.difficulty<3?'简单':(wp.difficulty<6?'中等':(wp.difficulty<8?'较难':'困难'));
-    const dColor=wp.difficulty<3?'#2F855A':(wp.difficulty<6?'#4A5568':(wp.difficulty<8?'#DD6B20':'#E53E3E'));
-    const nextInterval=wp.nextReview?Math.max(0,(wp.nextReview-Date.now())/86400000):0;
-    const nextStr=nextInterval<=0?'立即':(nextInterval<1?'<1天':Math.round(nextInterval*10)/10+'天');
-    const stateName = wp.fsrsState||'New';
-    const stateClass = stateName.toLowerCase();
-    const stateLabelCn = fsrsStateNameCn(wp.fsrs?.state ?? 0);
-    wordStatusBadge = `<div class="word-status-badge ${stateClass}">${stateLabelCn}</div>`;
-    fsrsInfo=`<div class="word-fsrs-info">
-      <span>R: <b>${Math.round(r*100)}%</b></span>
-      <span>S: <b>${sDays}</b></span>
-      <span>D: <b>${dLevel}</b></span>
-    </div>
-    <div style="margin-top:12px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface-variant);font-size:12px;color:var(--on-surface-variant);display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
-      <span>状态: <b style="color:var(--primary)">${stateName}</b></span>
-      <span>下次复习: <b style="color:var(--primary)">${nextStr}</b></span>
-    </div>`;
-  } else if(wp && wp.stability){
-    // Legacy display for not-yet-migrated words
-    const sDays=wp.stability<1?Math.round(wp.stability*24)+'小时':Math.round(wp.stability)+'天';
-    const dLevel=wp.difficulty<3?'简单':(wp.difficulty<6?'中等':(wp.difficulty<8?'较难':'困难'));
-    const dColor=wp.difficulty<3?'#2F855A':(wp.difficulty<6?'#4A5568':(wp.difficulty<8?'#DD6B20':'#E53E3E'));
-    const nextInterval=wp.nextReview?Math.ceil((wp.nextReview-Date.now())/86400000):0;
-    const nextStr=nextInterval<=0?'立即':(nextInterval<1?'<1天':nextInterval+'天');
-    wordStatusBadge = `<div class="word-status-badge review">复习中</div>`;
-    fsrsInfo=`<div class="word-fsrs-info">
-      <span>S: <b>${sDays}</b></span>
-      <span>D: <b>${dLevel}</b></span>
-    </div>
-    <div style="margin-top:12px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface-variant);font-size:12px;color:var(--on-surface-variant);display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
-      <span>下次复习: <b style="color:var(--primary)">${nextStr}</b></span>
-    </div>`;
-  }
 
   // FSRS-6 rating panel for review modes
   let ratingPanel='';
@@ -2763,10 +2954,10 @@ function selectOption(index){
     ratingPanel=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       <div class="fsrs-rating-title">请选择这次复习的真实感受（FSRS-6）</div>
       <div class="fsrs-rating-grid">
-        <button class="fsrs-rating-btn again" onclick="applyReviewRating(1)">重来<small>忘记了</small></button>
-        <button class="fsrs-rating-btn hard" onclick="applyReviewRating(2)">困难<small>很困难</small></button>
-        <button class="fsrs-rating-btn good" onclick="applyReviewRating(3)">良好<small>正常记住</small></button>
-        <button class="fsrs-rating-btn easy" onclick="applyReviewRating(4)">简单<small>非常轻松</small></button>
+        <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">重来<small>忘记了</small></button>
+        <button class="fsrs-rating-btn hard" data-rating="2" onclick="applyReviewRating(2)">困难<small>很困难</small></button>
+        <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">良好<small>正常记住</small></button>
+        <button class="fsrs-rating-btn easy" data-rating="4" onclick="applyReviewRating(4)">简单<small>非常轻松</small></button>
       </div>
     </div>`;
   }
@@ -2781,11 +2972,27 @@ function selectOption(index){
       ${ratingPanel}
     </div>
     ${!isReviewMode?`<button class="btn-continue" onclick="nextCard()">${isCorrect?'正确 · 继续':'错误 · 继续'} →</button>`:''}`;
-  document.querySelector('.card-container').insertAdjacentHTML('beforeend',resultHtml);
-  if(isCorrect){
-    setTimeout(()=>{ const sb=document.querySelector('.result-speak-btn'); speakWord(card.word, sb); },300);
+
+  const resArea = document.getElementById('study-result-area');
+  if(resArea){
+    resArea.innerHTML = resultHtml;
+  } else {
+    document.querySelector('.card-container')?.insertAdjacentHTML('beforeend', `<div id="study-result-area">${resultHtml}</div>`);
   }
-  setTimeout(()=>{ document.querySelector('.result-card')?.scrollIntoView({behavior:'smooth',block:'center'}); },100);
+
+  if(isCorrect){
+    setTimeout(()=>{ const sb=document.querySelector('.result-speak-btn'); if(sb) speakWord(card.word, sb); }, 180);
+  }
+
+  // Smooth gentle check: only scroll if bottom is overflowing viewport
+  const cardContainer = document.getElementById('study-card-container');
+  if(cardContainer){
+    const rect = cardContainer.getBoundingClientRect();
+    if(rect.bottom > window.innerHeight){
+      window.scrollBy({top: Math.min(rect.bottom - window.innerHeight + 16, 200), behavior: 'smooth'});
+    }
+  }
+
   saveProgress();
   saveSession();
 }
@@ -2817,14 +3024,6 @@ function applyReviewRating(ratingNumber){
     // Apply FSRS rating
     const {result}=applyFSRSRating(wp,rating,Date.now());
 
-    // Update stats
-    if(rating===api.Rating.Again){
-      // Already counted wrong in selectOption
-    }else{
-      // correct count already incremented in selectOption for correct answers
-      // but we need to check: Hard/Good/Easy all count as "correct"
-    }
-
     if(isWordMastered(wp) && !wasMastered && progress.stats){
       progress.stats.totalMastered=(progress.stats.totalMastered||0)+1;
     }
@@ -2839,10 +3038,15 @@ function applyReviewRating(ratingNumber){
     const panel=document.getElementById('fsrs-rating-panel');
     if(panel){
       const ratingBtns=panel.querySelectorAll('.fsrs-rating-btn');
-      ratingBtns.forEach(btn=>btn.disabled=true);
-      // Brief flash of selected rating, then auto-next
+      ratingBtns.forEach(btn=>{
+        btn.disabled=true;
+        if(btn.dataset.rating == ratingNumber){
+          btn.classList.add('active-selected');
+        }
+      });
+      // Snappy transition (160ms)
       if(_advanceTimer) clearTimeout(_advanceTimer);
-      _advanceTimer=setTimeout(()=>{ nextCardAfterRating(); }, 400);
+      _advanceTimer=setTimeout(()=>{ nextCardAfterRating(); }, 160);
     }
 
     // Handle retest: Again rating adds to retest queue
@@ -2875,7 +3079,7 @@ function nextCardAfterRating(){
 function nextCard(){
   if(!session || !session.cards) return;   // 会话已退出/已结束，别让残留定时器抛错
   const now=Date.now();
-  if(now-_lastAdvanceAt<250) return;       // 防连点跳题
+  if(now-_lastAdvanceAt<120) return;       // 防连点跳题 (120ms)
   _lastAdvanceAt=now;
   if(_advanceTimer){ clearTimeout(_advanceTimer); _advanceTimer=null; }
   session.currentIndex++;
