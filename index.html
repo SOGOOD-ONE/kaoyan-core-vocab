@@ -555,7 +555,7 @@ body{
 <div id="import-modal" style="display:none"></div>
 <div id="confirm-modal" style="display:none"></div>
 
-<script src="./data.js"></script>
+<script src="./data.js?v=20260916"></script>
 <script>
 // ===== Config =====
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // Legacy, kept for migration
@@ -3374,7 +3374,7 @@ async function loadRemoteVocab(){
   }
   // 2. Otherwise load local /data.js
   try{
-    const localResp = await fetch('/data.js');
+    const localResp = await fetch('/data.js?v=20260916');
     if(localResp.ok){
       const text = await localResp.text();
       const m = text.match(/const\s+VOCAB_DATA\s*=\s*(\[[\s\S]*?\]);/);
