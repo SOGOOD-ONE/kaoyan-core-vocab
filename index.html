@@ -1772,7 +1772,7 @@ function getDueCount(){
     const wp=progress.words[w.word];
     if(!wp || wp.status==='new' || wp.status==='ignored') return false;
     if(!wp.nextReview || wp.nextReview<todayStart || wp.nextReview>todayEnd) return false;
-    if(wp.lastReview && wp.lastReview>=todayStart) return false; // 今天已经复习过了
+    if(wp.lastReview && wp.lastReview>=todayStart && wp.nextReview>Date.now()) return false; // 今天已复习且还没到期
     return true;
   }).length;
 }
