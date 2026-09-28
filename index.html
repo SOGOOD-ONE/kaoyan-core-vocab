@@ -1951,41 +1951,32 @@ function getAutoReviewWords(){
   }
 
   // 3. V6-EX: 默认模式下补充已掌握词随机复习(防遗忘),优先第一次答错的
-  //    用户需求:一遍过完后,复习池要随机抽已掌握词参与,优先第一次答错(wrong>0)的,排除已斩(ignored)词
-  //    默认模式:已掌握补充一天一次,复习过就不再补充
-  //    自定义模式:第 2 步已按 retrievability 填满 reviewGoal,不额外补充
+  //    用户需求:考前 80 天持续复习,随时点都有词,稳定性高的已掌握词也要重复
+  //    默认模式:每次点"开始复习"都补充,但一天内不重复复习同一个已掌握词
+  //    自定义模式:第 2 步已按 已掌握优先+wrong>0 填满 reviewGoal,不额外补充
   if(isDefaultMode){
     const todayStart = getTodayStart();
-    // 默认模式下,今天已复习过已掌握词就不再补充
-    let alreadySupplemented = false;
+    const masteredPool = [];
     for(let i=0; i<learnedWords.length; i++){
-      const wp = progress.words[learnedWords[i].word];
+      const w = learnedWords[i];
+      if(selectedSet.has(w.word)) continue;
+      const wp = progress.words[w.word];
       if(!wp || !isWordMastered(wp)) continue;
-      if(wp.lastReview && wp.lastReview >= todayStart){ alreadySupplemented = true; break; }
+      // 排除今天已复习的词,避免一天内重复抽中(第二天会重置)
+      if(wp.lastReview && wp.lastReview >= todayStart) continue;
+      masteredPool.push({ word: w, wrong: wp.wrong || 0 });
     }
-    if(!alreadySupplemented){
-      const masteredPool = [];
-      for(let i=0; i<learnedWords.length; i++){
-        const w = learnedWords[i];
-        if(selectedSet.has(w.word)) continue;
-        const wp = progress.words[w.word];
-        if(!wp || !isWordMastered(wp)) continue;
-        // 排除今天已复习的词,避免一天内重复抽中
-        if(wp.lastReview && wp.lastReview >= todayStart) continue;
-        masteredPool.push({ word: w, wrong: wp.wrong || 0 });
-      }
-      if(masteredPool.length > 0){
-        // 补充量:已掌握词的 5%,最少 5 个,最多 20 个
-        const masteredQuota = Math.min(20, Math.max(5, Math.ceil(masteredPool.length * 0.05)));
-        // 优先第一次答错的(wrong > 0),其余次之,各自随机
-        const wrongFirst = shuffle(masteredPool.filter(c => c.wrong > 0));
-        const noWrong = shuffle(masteredPool.filter(c => c.wrong === 0));
-        const ordered = [...wrongFirst, ...noWrong];
-        for(let i=0; i<ordered.length && i<masteredQuota; i++){
-          const item = ordered[i].word;
-          selectedSet.add(item.word);
-          result.push(item);
-        }
+    if(masteredPool.length > 0){
+      // 补充量:已掌握词的 5%,最少 5 个,最多 20 个
+      const masteredQuota = Math.min(20, Math.max(5, Math.ceil(masteredPool.length * 0.05)));
+      // 优先第一次答错的(wrong > 0),其余次之,各自随机
+      const wrongFirst = shuffle(masteredPool.filter(c => c.wrong > 0));
+      const noWrong = shuffle(masteredPool.filter(c => c.wrong === 0));
+      const ordered = [...wrongFirst, ...noWrong];
+      for(let i=0; i<ordered.length && i<masteredQuota; i++){
+        const item = ordered[i].word;
+        selectedSet.add(item.word);
+        result.push(item);
       }
     }
   }
@@ -1994,26 +1985,21 @@ function getAutoReviewWords(){
 }
 
 // V6-EX: 已掌握词补充复习量(用于主页计数显示,与 getAutoReviewWords 的补充逻辑一致)
-// 默认模式(reviewGoal=0):已掌握补充一天一次,复习过就不再补充
-// 自定义模式(reviewGoal>0):第 2 步已按 retrievability 填满,不额外补充
+// 默认模式(reviewGoal=0):每次都计算剩余可补充的已掌握词
+// 自定义模式(reviewGoal>0):第 2 步已填满,不额外补充
 function getMasteredSupplementCount(){
   // 自定义模式不额外补充
   if(progress.reviewGoal !== 0) return 0;
   const todayStart = getTodayStart();
   let masteredAvailable = 0;
-  let masteredReviewedToday = 0;
   const all = getAllVocab();
   for(let i=0; i<all.length; i++){
     const wp = progress.words[all[i].word];
     if(!wp || !isWordMastered(wp)) continue;
-    if(wp.lastReview && wp.lastReview >= todayStart){
-      masteredReviewedToday++;
-    } else {
-      masteredAvailable++;
-    }
+    // 排除今天已复习的,只统计还能补充的
+    if(wp.lastReview && wp.lastReview >= todayStart) continue;
+    masteredAvailable++;
   }
-  // 今天已经复习过已掌握词,不再补充
-  if(masteredReviewedToday > 0) return 0;
   if(masteredAvailable === 0) return 0;
   return Math.min(20, Math.max(5, Math.ceil(masteredAvailable * 0.05)));
 }
