@@ -1265,6 +1265,22 @@ function dbAddReviewLog(entry){
   });
 }
 
+// 批量追加：会话结算时一次会产生几百条日志(每个新词一条)。
+// 逐条写会开几百个独立事务，每个事务都要经历一次完整提交，
+// 同步写盘时主线程卡顿明显；合并成单个事务只提交一次。
+function dbAddReviewLogs(entries){
+  return new Promise((resolve)=>{
+    if(!hasReviewLogStore() || !entries || !entries.length){ resolve(false); return; }
+    try{
+      const tx = dbInstance.transaction('reviewLogs', 'readwrite');
+      const store = tx.objectStore('reviewLogs');
+      for(let i=0; i<entries.length; i++) store.add(entries[i]);
+      tx.oncomplete = ()=>{ resolve(true); };
+      tx.onerror = ()=>{ resolve(false); };
+    }catch(e){ resolve(false); }
+  });
+}
+
 function dbCountReviewLogs(user){
   return new Promise((resolve)=>{
     if(!hasReviewLogStore()){ resolve(0); return; }
@@ -1289,25 +1305,30 @@ function dbGetReviewLogs(user){
   });
 }
 
+// 构造一条复习日志（不写入）。拆出来是为了让会话结算能先收集再批量落库。
+function buildReviewLogEntry(word, rating, beforeCard, afterCard, sessionType){
+  const api = fsrsApi();
+  return {
+    u: currentUser || '',
+    w: word,
+    t: Date.now(),
+    r: rating, // FSRS Rating: 1=Again, 2=Hard, 3=Good, 4=Easy
+    c: rating===api.Rating.Again ? 0 : 1, // 0=wrong, 1=correct (for compatibility)
+    sb: beforeCard ? beforeCard.stability : 0,
+    db: beforeCard ? beforeCard.difficulty : 0,
+    sa: afterCard ? afterCard.stability : 0,
+    da: afterCard ? afterCard.difficulty : 0,
+    d: beforeCard ? beforeCard.elapsed_days : 0,
+    before: beforeCard,
+    after: afterCard,
+    st: sessionType
+  };
+}
+
 async function logReview(word, rating, beforeCard, afterCard, sessionType){
   if(!hasReviewLogStore()) return;
   try{
-    const api = fsrsApi();
-    await dbAddReviewLog({
-      u: currentUser || '',
-      w: word,
-      t: Date.now(),
-      r: rating, // FSRS Rating: 1=Again, 2=Hard, 3=Good, 4=Easy
-      c: rating===api.Rating.Again ? 0 : 1, // 0=wrong, 1=correct (for compatibility)
-      sb: beforeCard ? beforeCard.stability : 0,
-      db: beforeCard ? beforeCard.difficulty : 0,
-      sa: afterCard ? afterCard.stability : 0,
-      da: afterCard ? afterCard.difficulty : 0,
-      d: beforeCard ? beforeCard.elapsed_days : 0,
-      before: beforeCard,
-      after: afterCard,
-      st: sessionType
-    });
+    await dbAddReviewLog(buildReviewLogEntry(word, rating, beforeCard, afterCard, sessionType));
   }catch(e){}
 }
 
@@ -1842,6 +1863,8 @@ function getAutoReviewWords(){
   const dueCutoff = Date.now();
 
   // 1. 先构建 dueCandidates(同时用于默认模式的 dueNow 计数和实际选词)
+  //    retrievability 惰性计算：它要构造 FSRS card 并调调度器，开销远大于存引用。
+  //    到期词排序以 nextReview 为主，只有到期时间接近(1小时内)时才用得上它。
   const dueCandidates = [];
   for(let i=0; i<learnedWords.length; i++){
     const w = learnedWords[i];
@@ -1849,8 +1872,8 @@ function getAutoReviewWords(){
     if(wp && wp.nextReview && wp.nextReview<=dueCutoff){
       dueCandidates.push({
         word: w,
+        wp: wp,
         nextReview: wp.nextReview || 0,
-        retrievability: fsrsRetrievability(wp),
         wrong: wp.wrong || 0
       });
     }
@@ -1878,7 +1901,10 @@ function getAutoReviewWords(){
   dueCandidates.sort((a,b)=>{
     const expireDiff = a.nextReview - b.nextReview;
     if(Math.abs(expireDiff)>3600000) return expireDiff;
-    const rDiff = a.retrievability - b.retrievability;
+    // 仅在此刻(到期时间差 <= 1 小时)才计算记忆强度
+    if(a.r===undefined) a.r=fsrsRetrievability(a.wp);
+    if(b.r===undefined) b.r=fsrsRetrievability(b.wp);
+    const rDiff = a.r - b.r;
     if(Math.abs(rDiff)>0.01) return rDiff;
     return b.wrong - a.wrong;
   });
@@ -1900,9 +1926,10 @@ function getAutoReviewWords(){
       if(!selectedSet.has(w.word)){
         const wp = progress.words[w.word] || {};
         // 自定义模式是"每次"取满 reviewGoal,不排除今天已复习的已掌握词
+        // retrievability 同样惰性：已掌握词在排序里根本不读它
         remainingCandidates.push({
           word: w,
-          retrievability: fsrsRetrievability(wp),
+          wp: wp,
           wrong: wp.wrong || 0,
           mastered: isWordMastered(wp)
         });
@@ -1922,7 +1949,9 @@ function getAutoReviewWords(){
         return 0; // 保持打乱后的随机顺序
       }
       // 非已掌握:按 retrievability 升序(低记忆强度先复习)
-      const rDiff = a.retrievability - b.retrievability;
+      if(a.r===undefined) a.r=fsrsRetrievability(a.wp);
+      if(b.r===undefined) b.r=fsrsRetrievability(b.wp);
+      const rDiff = a.r - b.r;
       if(Math.abs(rDiff)>0.01) return rDiff;
       return b.wrong - a.wrong;
     });
@@ -3230,17 +3259,22 @@ function completeSession(){
     if(session.type==='study'){
       const now=Date.now();
       let newLearned=0;
+      // 空卡与调度器对所有新词都相同：scheduler.next() 不会修改入参，
+      // 循环外建一次即可，避免每个词都 createEmptyCard
+      const api=fsrsApi();
+      const scheduler=getFSRSScheduler();
+      const emptyCard=api.createEmptyCard();
+      const emptySerialized=serializeFSRSCard(emptyCard);
+      // 会话结算会一次产生几百条日志，先收集再合并成单个 IndexedDB 事务
+      const pendingLogs=[];
       session.studiedWords.forEach(word=>{
         try{
           const wp=progress.words[word];
           if(!wp || wp.status==='new'){
             // FSRS-6: use official scheduler with rating based on study performance
             const correctInStudy = session.wordCorrectCount ? (session.wordCorrectCount[word]||0) : 0;
-            const api=fsrsApi();
             const rating=fsrsRatingFromStudyResult(correctInStudy);
-            const card=api.createEmptyCard();
-            const scheduler=getFSRSScheduler();
-            const result=scheduler ? scheduler.next(card,new Date(now),rating) : {card};
+            const result=scheduler ? scheduler.next(emptyCard,new Date(now),rating) : {card:emptyCard};
             const newWp={
               status:'review',
               level:rating===api.Rating.Easy?2:(rating===api.Rating.Good?1:0),
@@ -3258,12 +3292,13 @@ function completeSession(){
             };
             progress.words[word]=newWp;
             newLearned++;
-            logReview(word,rating,serializeFSRSCard(card),serializeFSRSCard(result.card),'study-init');
+            pendingLogs.push(buildReviewLogEntry(word,rating,emptySerialized,serializeFSRSCard(result.card),'study-init'));
           }
         }catch(e){
           console.error('Error processing word in completeSession:', word, e);
         }
       });
+      if(pendingLogs.length) dbAddReviewLogs(pendingLogs);
       progress.todayNewCount+=newLearned;
       progress.stats.totalLearned+=newLearned;
       progress.stats.totalCorrect+=session.correctCount;
