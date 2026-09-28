@@ -1908,25 +1908,43 @@ function getAutoReviewWords(){
   // 2. Fill remaining with non-due learned words, sorted by retrievability
   if(!isDefaultMode && result.length<takeCount){
     const remainingCandidates = [];
+    const todayStart = getTodayStart();
     for(let i=0; i<learnedWords.length; i++){
       const w = learnedWords[i];
       if(!selectedSet.has(w.word)){
         const wp = progress.words[w.word] || {};
+        const mastered = isWordMastered(wp);
+        // 已掌握词排除今天已复习的,避免一天内重复复习
+        if(mastered && wp.lastReview && wp.lastReview >= todayStart) continue;
         remainingCandidates.push({
           word: w,
           retrievability: fsrsRetrievability(wp),
-          wrong: wp.wrong || 0
+          wrong: wp.wrong || 0,
+          mastered: mastered
         });
       }
     }
-    remainingCandidates.sort((a,b)=>{
+    // 自定义模式排序:已掌握词优先(wrong>0 优先,然后随机),非已掌握按 retrievability
+    // 先打乱,让已掌握词内的排序是随机的(同组内 tiebreaker 用打乱后的顺序)
+    const shuffledCandidates = shuffle(remainingCandidates);
+    shuffledCandidates.sort((a,b)=>{
+      // 已掌握词优先于非已掌握
+      if(a.mastered !== b.mastered) return (b.mastered?1:0) - (a.mastered?1:0);
+      if(a.mastered){
+        // 已掌握内:wrong>0 优先,其余保持打乱顺序(随机)
+        const aWrong = a.wrong>0 ? 1 : 0;
+        const bWrong = b.wrong>0 ? 1 : 0;
+        if(aWrong !== bWrong) return bWrong - aWrong;
+        return 0; // 保持打乱后的随机顺序
+      }
+      // 非已掌握:按 retrievability 升序(低记忆强度先复习)
       const rDiff = a.retrievability - b.retrievability;
       if(Math.abs(rDiff)>0.01) return rDiff;
       return b.wrong - a.wrong;
     });
-    for(let i=0; i<remainingCandidates.length; i++){
+    for(let i=0; i<shuffledCandidates.length; i++){
       if(result.length>=takeCount) break;
-      const item = remainingCandidates[i].word;
+      const item = shuffledCandidates[i].word;
       selectedSet.add(item.word);
       result.push(item);
     }
