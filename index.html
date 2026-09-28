@@ -1908,19 +1908,16 @@ function getAutoReviewWords(){
   // 2. Fill remaining with non-due learned words, sorted by retrievability
   if(!isDefaultMode && result.length<takeCount){
     const remainingCandidates = [];
-    const todayStart = getTodayStart();
     for(let i=0; i<learnedWords.length; i++){
       const w = learnedWords[i];
       if(!selectedSet.has(w.word)){
         const wp = progress.words[w.word] || {};
-        const mastered = isWordMastered(wp);
-        // 已掌握词排除今天已复习的,避免一天内重复复习
-        if(mastered && wp.lastReview && wp.lastReview >= todayStart) continue;
+        // 自定义模式是"每次"取满 reviewGoal,不排除今天已复习的已掌握词
         remainingCandidates.push({
           word: w,
           retrievability: fsrsRetrievability(wp),
           wrong: wp.wrong || 0,
-          mastered: mastered
+          mastered: isWordMastered(wp)
         });
       }
     }
