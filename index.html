@@ -1580,8 +1580,14 @@ function loadProgress(){
              todayStudyMinutes:0,totalStudyMinutes:0,todayStudyDate:''}
     };
   }
+  normalizeProgress();
+}
+
+// 进度归一化：loadProgress 和 loadProgressFromDB 共用，消除之前两份重复的 30 行代码
+function normalizeProgress(){
   // V5 defaults
-  if(progress.studyGoal===undefined || progress.studyGoal<100) progress.studyGoal=100; if(progress.studyGoal>400) progress.studyGoal=400;
+  if(progress.studyGoal===undefined || progress.studyGoal<100) progress.studyGoal=100;
+  if(progress.studyGoal>400) progress.studyGoal=400;
   if(progress.reviewGoal===undefined) progress.reviewGoal=0; // 0=今日待复习量
   if(progress.reviewGoal===80) progress.reviewGoal=200;
   if(progress.todayDate!==getToday()){ progress.todayDate=getToday(); progress.todayNewCount=0; progress.todayReviewCount=0; }
@@ -1628,42 +1634,7 @@ async function loadProgressFromDB(){
   const data = await dbGet(key);
   if(data){
     progress = typeof data === 'string' ? JSON.parse(data) : data;
-    if(progress.studyGoal===undefined || progress.studyGoal<100) progress.studyGoal=100; if(progress.studyGoal>400) progress.studyGoal=400;
-    if(progress.reviewGoal===undefined) progress.reviewGoal=0;
-    if(progress.reviewGoal===80) progress.reviewGoal=200;
-    if(progress.todayDate!==getToday()){ progress.todayDate=getToday(); progress.todayNewCount=0; progress.todayReviewCount=0; }
-    if(progress.todayReviewCount===undefined) progress.todayReviewCount=0;
-    if(!progress.stats) progress.stats={};
-    if(progress.stats.todayStudyMinutes===undefined) progress.stats.todayStudyMinutes=0;
-    if(progress.stats.totalStudyMinutes===undefined) progress.stats.totalStudyMinutes=0;
-    if(progress.stats.todayStudyDate===undefined) progress.stats.todayStudyDate='';
-    // 每日学习时长与"学习日"对齐（北京时间 05:00 换日），不再单独按 0 点换日
-    if(progress.stats.todayStudyDate!==getToday()){
-      progress.stats.todayStudyDate=getToday();
-      progress.stats.todayStudyMinutes=0;
-    }
-    // FSRS-6 migration: migrate all existing words to official ts-fsrs format
-    if(progress.words && fsrsReady){
-      for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
-      // V5-EX5: Migrate firstLearned field
-      for(const w in progress.words){
-        const wp=progress.words[w];
-        if(wp.firstLearned===undefined){
-          wp.firstLearned = wp.lastStudy || wp.lastReview || Date.now();
-        }
-      }
-      // V5-EX7: Nuclear fix — reset ALL firstLearned to 3 days ago
-      if(!progress.firstLearnedFixV3){
-        for(const w in progress.words){
-          const wp=progress.words[w];
-          if(wp.firstLearned){
-            wp.firstLearned=Date.now()-3*86400000;
-          }
-        }
-        progress.firstLearnedFixV3=true;
-        progress.firstLearnedFixV2=true;
-      }
-    }
+    normalizeProgress();
   }
 }
 
@@ -1826,22 +1797,6 @@ function getDueCount(){
   }).length;
 }
 
-function getOverdueCount(){
-  // 累积逾期 = 今天之前到期 且 还没复习过 的词（历史欠账）
-  const todayStart=getTodayStart();
-  const all=getAllVocab();
-  return all.filter(w=>{
-    const wp=progress.words[w.word];
-    if(!wp || wp.status==='new' || wp.status==='ignored') return false;
-    return wp.nextReview && wp.nextReview<todayStart;
-  }).length;
-}
-
-function getNewCount(){
-  const all=getAllVocab();
-  return all.filter(w=>!progress.words[w.word]||progress.words[w.word].status==='new').length;
-}
-
 function getMasteredCount(){
   // FSRS-6 已掌握标准：state === Review 且 stability >= 30天
   let count=0;
@@ -1871,22 +1826,6 @@ function getWrongWords(){
     return wp && wp.status!=='ignored' && (wp.wrong||0)>=3;
   });
 }
-function getWrongCount(){ return getWrongWords().length; }
-
-// V5-EX5: Forced review = ONLY yesterday's newly learned words (using firstLearned, not lastStudy)
-function getForcedReviewWords(){
-  const all=getAllVocab();
-  const yest=getYesterday();
-  // Only words FIRST LEARNED yesterday (by 5 AM boundary)
-  // Use firstLearned if available, fallback to lastStudy for old data
-  return all.filter(w=>{
-    const wp=progress.words[w.word];
-    if(!wp || wp.status==='ignored' || wp.status==='new') return false;
-    const learnDate = wp.firstLearned || wp.lastStudy;
-    if(!learnDate) return false;
-    return dateToStudyDay(learnDate)===yest;
-  });
-}
 
 // V5-EX4: Independent review - due words first, then fill by retrievability
 function getAutoReviewWords(){
@@ -1900,29 +1839,9 @@ function getAutoReviewWords(){
   if(learnedWords.length===0) return [];
 
   const isDefaultMode = progress.reviewGoal===0;
-  let targetCount;
-  if(isDefaultMode){
-    // 默认模式：今日固定复习量（每天第一次打开时计算，当天内不再增加）
-    const dueNow = learnedWords.filter(w=>{
-      const wp=progress.words[w.word];
-      return wp.nextReview && wp.nextReview<=Date.now();
-    }).length;
-    // 每天第一次打开时缓存今日总量
-    if(!progress.todayReviewCount || progress.todayReviewCount<=0){
-      progress.todayReviewCount = dueNow;
-      saveProgress();
-    }
-    // 当天内不超过今日总量，但随着复习会减少
-    targetCount = Math.min(progress.todayReviewCount, dueNow);
-  } else {
-    targetCount = progress.reviewGoal;
-  }
-  const takeCount = Math.min(targetCount, learnedWords.length);
-  const selectedSet = new Set();
-  const result = [];
-
-  // 1. Include due words first (expired first, then today's)
   const dueCutoff = Date.now();
+
+  // 1. 先构建 dueCandidates(同时用于默认模式的 dueNow 计数和实际选词)
   const dueCandidates = [];
   for(let i=0; i<learnedWords.length; i++){
     const w = learnedWords[i];
@@ -1936,6 +1855,24 @@ function getAutoReviewWords(){
       });
     }
   }
+  const dueNow = dueCandidates.length; // 复用,不再单独 filter 遍历
+
+  let targetCount;
+  if(isDefaultMode){
+    // 默认模式：今日固定复习量（每天第一次打开时计算，当天内不再增加）
+    // 每天第一次打开时缓存今日总量
+    if(!progress.todayReviewCount || progress.todayReviewCount<=0){
+      progress.todayReviewCount = dueNow;
+      saveProgress();
+    }
+    // 当天内不超过今日总量，但随着复习会减少
+    targetCount = Math.min(progress.todayReviewCount, dueNow);
+  } else {
+    targetCount = progress.reviewGoal;
+  }
+  const takeCount = Math.min(targetCount, learnedWords.length);
+  const selectedSet = new Set();
+  const result = [];
 
   // Sort due words: overdue first (most expired first), then by retrievability
   dueCandidates.sort((a,b)=>{
@@ -2031,24 +1968,51 @@ function getAutoReviewWords(){
   return shuffle(result);
 }
 
-// V6-EX: 已掌握词补充复习量(用于主页计数显示,与 getAutoReviewWords 的补充逻辑一致)
-// 默认模式(reviewGoal=0):每次都计算剩余可补充的已掌握词
-// 自定义模式(reviewGoal>0):第 2 步已填满,不额外补充
-function getMasteredSupplementCount(){
-  // 自定义模式不额外补充
-  if(progress.reviewGoal !== 0) return 0;
-  const todayStart = getTodayStart();
-  let masteredAvailable = 0;
-  const all = getAllVocab();
+// 主页统计合并计算：一次性遍历 getAllVocab() 得到所有主页需要的计数
+// 之前 renderHome 调用 9 个独立统计函数,每个都遍历全词库,共 9 次遍历
+// 这里合并为 1 次遍历 + 1 次 getMasteredCount()(数据源不同,无法合并)
+function computeHomeStats(){
+  const todayStart=getTodayStart();
+  const todayEnd=todayStart+86400000;
+  const now=Date.now();
+  const all=getAllVocab();
+  const words=progress.words;
+  let dueCount=0, overdueCount=0, newCount=0, learnedCount=0, ignoredCount=0, wrongCount=0;
+  let masteredAvailable=0;
   for(let i=0; i<all.length; i++){
-    const wp = progress.words[all[i].word];
-    if(!wp || !isWordMastered(wp)) continue;
-    // 排除今天已复习的,只统计还能补充的
-    if(wp.lastReview && wp.lastReview >= todayStart) continue;
-    masteredAvailable++;
+    const w=all[i];
+    const wp=words[w.word];
+    const status = wp ? wp.status : 'new';
+    // 新词计数(!wp OR status==='new')
+    if(!wp || status==='new'){ newCount++; continue; }
+    // 已斩计数
+    if(status==='ignored'){ ignoredCount++; continue; }
+    // 已学计数(status==='review' 或其他非 new/ignored)
+    learnedCount++;
+    // 今日待复习:nextReview 在 [todayStart, todayEnd] 且今天没复习过(或已再次到期)
+    if(wp.nextReview && wp.nextReview>=todayStart && wp.nextReview<=todayEnd){
+      if(!wp.lastReview || wp.lastReview<todayStart || wp.nextReview<=now){
+        dueCount++;
+      }
+    }
+    // 累积逾期:nextReview < todayStart
+    if(wp.nextReview && wp.nextReview<todayStart){
+      overdueCount++;
+    }
+    // 错题本:wrong>=3(已排除 ignored)
+    if((wp.wrong||0)>=3) wrongCount++;
+    // 已掌握词补充复习候选:今天没复习过的已掌握词
+    if(isWordMastered(wp) && (!wp.lastReview || wp.lastReview<todayStart)){
+      masteredAvailable++;
+    }
   }
-  if(masteredAvailable === 0) return 0;
-  return Math.min(20, Math.max(5, Math.ceil(masteredAvailable * 0.05)));
+  const supplementCount = progress.reviewGoal!==0 ? 0 : Math.min(20, Math.max(5, Math.ceil(masteredAvailable*0.05)));
+  return {
+    all, totalCount: all.length,
+    dueCount, overdueCount, newCount, learnedCount, ignoredCount, wrongCount,
+    masteredCount: getMasteredCount(), // 遍历 progress.words,数据源不同
+    supplementCount
+  };
 }
 
 // ===== Generate Options (High-Performance O(1) Sampler) =====
@@ -2387,31 +2351,31 @@ function confirmImport(){
 
 // ===== Home =====
 function renderHome(){
-  if(!progress.studyGoal || progress.studyGoal < 100){ progress.studyGoal = 100; saveProgress(); }
-  if(progress.studyGoal > 400){ progress.studyGoal = 400; saveProgress(); }
-  if(progress.reviewGoal === 80){ progress.reviewGoal = 200; saveProgress(); }
-  const allVocab=getAllVocab();
-  const dueCount=getDueCount();
-  const overdueCount=getOverdueCount();
-  const newCount=getNewCount();
-  const learnedCount=getLearnedCount();
-  const masteredCount=getMasteredCount();
-  const ignoredCount=getIgnoredCount();
-  const wrongCount=getWrongCount();
-  const totalCount=allVocab.length;
+  // 顶部归一化：合并多个独立 if + saveProgress 为一次标记 + 一次写入
+  let goalDirty=false;
+  if(!progress.studyGoal || progress.studyGoal < 100){ progress.studyGoal = 100; goalDirty=true; }
+  if(progress.studyGoal > 400){ progress.studyGoal = 400; goalDirty=true; }
+  if(progress.reviewGoal === 80){ progress.reviewGoal = 200; goalDirty=true; }
+  if(goalDirty) saveProgress();
+
+  // 一次性遍历 getAllVocab() 计算所有主页统计(替代之前 9 次独立遍历)
+  const stats = computeHomeStats();
+  const totalCount=stats.totalCount;
+  const dueCount=stats.dueCount;
+  const overdueCount=stats.overdueCount;
+  const newCount=stats.newCount;
+  const learnedCount=stats.learnedCount;
+  const masteredCount=stats.masteredCount;
+  const ignoredCount=stats.ignoredCount;
+  const wrongCount=stats.wrongCount;
   const perSession=progress.studyGoal;
   const canStudy = newCount > 0;
 
   const progressDone=learnedCount+ignoredCount;
   // 兜底：即使计数口径异常，也不让进度条超过 100% / 出现 NaN
   const overallPct=totalCount>0?Math.min(progressDone/totalCount*100,100):0;
-  const unlearnedCount=totalCount-progressDone;
-  const daysToFinish=progress.studyGoal>0?Math.ceil(Math.max(unlearnedCount,0)/progress.studyGoal):0;
-  const finishDate=new Date();
-  finishDate.setDate(finishDate.getDate()+daysToFinish);
-  const finishDateStr=daysToFinish>0?finishDate.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}):'已学完';
   // Total pending review = today's due + overdue + 已掌握词补充(防遗忘)
-  const realPending = dueCount + overdueCount + getMasteredSupplementCount();
+  const realPending = dueCount + overdueCount + stats.supplementCount;
   // Daily fixed count: calculate once per day and cache it, so the number doesn't grow during the day
   if(progress.todayReviewCount <= 0 || progress.todayReviewCount === undefined){
     progress.todayReviewCount = realPending;
@@ -2427,7 +2391,7 @@ function renderHome(){
   // V5: word count options
   const studyOptions=[100,150,200,300,400];
   const reviewOptions=[{v:0,l:'今日'},{v:200,l:'200'},{v:350,l:'350'},{v:500,l:'500'}];
-  const learnedTotal=getLearnedCount();
+  const learnedTotal=learnedCount; // 复用上面已经算好的值,不再重复遍历
 
   const pendingSession=loadSession()||_cachedPendingSession;
   _cachedPendingSession=null;
@@ -2740,22 +2704,8 @@ function startStudy(){
   renderCard();
 }
 
-// V5-EX4: Forced review = ONLY yesterday's learned words
+// V5-EX4: 复习入口统一走独立的 FSRS 复习流程
 function startReview(){ return startAutoReview(); }
-function _legacy_startReview(){
-  const reviewWords=getForcedReviewWords();
-  if(reviewWords.length===0){ showToast('暂无需要复习的单词'); return; }
-  const shuffled=shuffle(reviewWords);
-  const cards=shuffled.map(w=>{
-    const isCn2En=Math.random()<0.5;
-    return {...w, passType:isCn2En?'cn2en':'en2cn', passLabel:isCn2En?'汉选英':'英选汉', passNum:0};
-  });
-  session={type:'review', cards, currentIndex:0, correctCount:0, wrongCount:0,
-    answeredWords:new Set(), reviewResults:{}, retestQueue:[], retestInserted:new Set(), startTime:Date.now()};
-  showView('study');
-  startStudyTimer();
-  renderCard();
-}
 
 function ensureStudyViewMounted(){
   const studyView = document.getElementById('view-study');
@@ -3429,9 +3379,11 @@ async function loadRemoteVocab(){
     console.log(`Vocab loaded from local data: ${VOCAB_DATA.length} words`);
     return;
   }
-  // 2. Otherwise load local /data.js
+  // 2. Otherwise load local ./data.js
+  // 注意：必须用相对路径。GitHub Pages 部署在子目录（/kaoyan-core-vocab/）下，
+  // 绝对路径 /data.js 会请求站点根目录导致 404，被迫回退到限流的 GitHub API
   try{
-    const localResp = await fetch('/data.js?v=20260916');
+    const localResp = await fetch('./data.js?v=20260916');
     if(localResp.ok){
       const text = await localResp.text();
       const m = text.match(/const\s+VOCAB_DATA\s*=\s*(\[[\s\S]*?\]);/);
