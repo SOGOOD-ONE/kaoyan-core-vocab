@@ -2827,6 +2827,12 @@ function renderCard(){
 
   const resArea = document.getElementById('study-result-area');
   if(resArea) resArea.innerHTML = '';
+
+  // 恢复问题区、选项区、斩词行显示
+  for(const id of ['study-question-card','reveal-btn','options','study-ignore-row']){
+    const el=document.getElementById(id);
+    if(el) el.style.display='';
+  }
 }
 
 // V5: Get translation for an option
@@ -2975,17 +2981,14 @@ function selectOption(index){
     document.querySelector('.card-container')?.insertAdjacentHTML('beforeend', `<div id="study-result-area">${resultHtml}</div>`);
   }
 
-  if(isCorrect){
-    setTimeout(()=>{ const sb=document.querySelector('.result-speak-btn'); if(sb) speakWord(card.word, sb); }, 180);
+  // 隐藏问题区、选项区、斩词行，结果区原地替代，避免页面高度突变和跳动
+  for(const id of ['study-question-card','reveal-btn','options','study-ignore-row']){
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
   }
 
-  // Smooth gentle check: only scroll if bottom is overflowing viewport
-  const cardContainer = document.getElementById('study-card-container');
-  if(cardContainer){
-    const rect = cardContainer.getBoundingClientRect();
-    if(rect.bottom > window.innerHeight){
-      window.scrollBy({top: Math.min(rect.bottom - window.innerHeight + 16, 200), behavior: 'smooth'});
-    }
+  if(isCorrect){
+    setTimeout(()=>{ const sb=document.querySelector('.result-speak-btn'); if(sb) speakWord(card.word, sb); }, 180);
   }
 
   saveProgress();
