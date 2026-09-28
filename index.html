@@ -540,6 +540,56 @@ body{
   .mode-tab-desc{font-size:10px}
   .stat-num{font-size:20px}
 }
+
+/* ============ V6 新主页 UI ============ */
+.home-new{
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-height:100vh;padding:20px 24px calc(24px + env(safe-area-inset-bottom));
+}
+.hn-topbar{display:flex;justify-content:space-between;align-items:center;padding-top:10px;}
+.hn-title{font-size:16px;font-weight:700;letter-spacing:-0.3px;color:var(--on-surface);}
+.hn-streak{font-size:12px;color:var(--primary);margin-left:6px;font-weight:600;background:var(--primary-container);padding:2px 8px;border-radius:10px;}
+.hn-icon-btn{background:none;border:none;cursor:pointer;padding:6px;color:var(--on-surface-muted);font-size:20px;line-height:1;letter-spacing:1px;}
+.hn-focus{text-align:center;margin:auto 0;padding:20px 0;}
+.hn-mode-switch{display:inline-flex;gap:32px;margin-bottom:22px;}
+.hn-mode-item{font-size:15px;color:#94A3B8;cursor:pointer;padding-bottom:6px;position:relative;transition:color .15s;font-weight:500;}
+.hn-mode-item.active{color:var(--primary);font-weight:700;}
+.hn-mode-item.active::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:2.5px;background:var(--primary);border-radius:2px;}
+.hn-hero-num{font-size:74px;font-weight:800;line-height:1;letter-spacing:-2px;color:var(--on-surface);font-variant-numeric:tabular-nums;}
+.hn-hero-label{font-size:13px;color:var(--on-surface-muted);margin-top:10px;}
+.hn-progress-line{width:150px;height:3px;background:var(--outline);margin:16px auto 0;border-radius:2px;overflow:hidden;}
+.hn-progress-fill{height:100%;background:var(--primary);border-radius:2px;transition:width .4s;}
+.hn-stats-text{font-size:12px;color:var(--on-surface-muted);margin-top:8px;}
+.hn-timer-strip{display:inline-flex;align-items:center;gap:18px;background:var(--surface);padding:8px 18px;border-radius:14px;margin-top:14px;}
+.hn-timer-num{font-size:15px;font-weight:700;color:var(--on-surface);font-variant-numeric:tabular-nums;}
+.hn-timer-num.today{color:var(--primary);}
+.hn-timer-unit{font-size:11px;font-weight:400;color:var(--on-surface-muted);margin-left:1px;}
+.hn-timer-label{font-size:10px;color:var(--on-surface-muted);margin-top:1px;}
+.hn-timer-divider{width:1px;height:18px;background:#E2E8F0;}
+.hn-bottom{display:flex;flex-direction:column;gap:12px;}
+.hn-goal-selector{display:flex;justify-content:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.hn-goal-btn{background:none;border:1px solid transparent;font-size:13px;color:var(--on-surface-muted);cursor:pointer;padding:6px 14px;border-radius:20px;font-weight:500;transition:all .15s;}
+.hn-goal-btn.active{color:var(--primary);font-weight:700;background:var(--primary-container);border-color:var(--primary-border);}
+.hn-start-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--primary);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(59,130,246,.25);transition:transform .1s,background-color .15s;}
+.hn-start-btn:active{transform:scale(.985);background:var(--primary-hover);}
+.hn-start-btn:disabled{background:var(--outline);color:var(--on-surface-muted);box-shadow:none;cursor:not-allowed;}
+.hn-sub-links{display:flex;justify-content:space-between;padding:4px 6px 0;}
+.hn-text-link{background:none;border:none;font-size:12px;color:var(--on-surface-muted);cursor:pointer;transition:color .1s;}
+.hn-text-link:active{color:var(--primary);}
+.hn-resume{margin:0 0 12px;padding:14px;border-radius:14px;background:var(--primary-container);border:1px solid var(--primary-border);}
+.hn-resume-title{font-size:14px;font-weight:700;color:var(--primary);}
+.hn-resume-desc{font-size:12px;color:var(--on-surface-muted);margin-top:4px;}
+.hn-resume-actions{display:flex;gap:8px;margin-top:10px;}
+.hn-resume-btn-primary{flex:1;padding:8px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
+.hn-resume-btn-secondary{flex:1;padding:8px;border-radius:8px;border:1px solid var(--outline);background:#fff;color:var(--on-surface-muted);font-size:13px;cursor:pointer;}
+/* 菜单抽屉 */
+.hn-menu-mask{position:fixed;inset:0;background:rgba(15,23,42,.35);display:none;align-items:flex-end;z-index:100;backdrop-filter:blur(2px);}
+.hn-menu-mask.show{display:flex;}
+.hn-menu-content{width:100%;max-width:414px;margin:0 auto;background:#fff;border-radius:22px 22px 0 0;padding:24px 20px calc(36px + env(safe-area-inset-bottom));animation:hnSlideUp .2s;}
+@keyframes hnSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.hn-menu-item{width:100%;padding:14px 4px;background:none;border:none;border-bottom:1px solid var(--outline);font-size:14px;color:var(--on-surface);text-align:left;cursor:pointer;display:flex;justify-content:space-between;}
+.hn-menu-item.danger{color:var(--error);border-bottom:none;}
+.hn-menu-close{width:100%;padding:14px;margin-top:14px;background:var(--outline);border:none;border-radius:12px;font-size:14px;font-weight:600;color:var(--on-surface);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -2398,128 +2448,95 @@ function renderHome(){
       </div>`;
   }
 
+  const isStudy = homeMode==='study';
+  const reviewCount = progress.reviewGoal===0 ? pendingReviewCount : Math.min(progress.reviewGoal, learnedTotal);
+  const heroNum = isStudy ? progress.studyGoal : reviewCount;
+  const heroLabel = isStudy
+    ? `待学新词 · 词库剩余 ${newCount}`
+    : (progress.reviewGoal===0 ? `今日到期待复习 · FSRS 算法` : `自主复习目标 · 总已学 ${learnedTotal}`);
+  const startBtnText = isStudy
+    ? (newCount===0 ? '全部单词已学完' : `开始背词 (${Math.min(perSession,newCount)} 词)`)
+    : (learnedTotal>0 ? `开始复习 (${reviewCount} 词)` : '暂无可复习的单词');
+  const startBtnDisabled = isStudy ? !canStudy : learnedTotal===0;
+  const overallPctRounded = Math.round(overallPct);
+
   const html=`
-    <div class="home-header">
-      <div class="home-title">考研英语核心词</div>
-      <div class="home-subtitle">${streak>0?'连续学习 '+streak+' 天':'开始你的学习之旅'}</div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:4px">V3 · FSRS-6 · 2026-08-18</div>
-      ${currentUser?'<div style="margin-top:8px"><span class="user-badge">'+escapeHtml(currentUser)+'</span></div>':''}
-    </div>
-
-    ${resumeHtml}
-
-    <!-- 每次背诵量选择器 -->
-    <div class="daily-goal-card">
-      <div class="daily-goal-title">每次背诵量</div>
-      <div class="daily-goal-subtitle">今日已学 <b style="color:var(--primary)">${progress.todayNewCount}</b> 词</div>
-      <div class="daily-goal-btns">
-        ${studyOptions.map(n=>`<button class="daily-goal-btn ${progress.studyGoal===n?'active':''}" onclick="setStudyGoal(${n})">${n}</button>`).join('')}
-      </div>
-    </div>
-
-    <!-- 模式选择 Tab -->
-    <div class="mode-tabs">
-      <div class="mode-tab ${homeMode==='study'?'active':''}" onclick="setHomeMode('study')">
-        <div class="mode-tab-title">今日背诵</div>
-      </div>
-      <div class="mode-tab ${homeMode==='auto'?'active':''}" onclick="setHomeMode('auto')">
-        <div class="mode-tab-title">复习单词</div>
-      </div>
-    </div>
-    <!-- 统计行 -->
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-num">${newCount}</div>
-        <div class="stat-label">待学新词</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num ${pendingReviewCount>0?'warn':''} ">${pendingReviewCount}</div>
-        <div class="stat-label">待复习</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num ${masteredCount>0?'success':''}">${masteredCount}</div>
-        <div class="stat-label">已掌握</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num muted">${totalCount}</div>
-        <div class="stat-label">词库总数</div>
-      </div>
-    </div>
-    <!-- 开始按钮区 -->
-    <div class="home-actions">
-      ${homeMode==='study'?`
-        <button class="action-btn primary" onclick="startStudy()" ${!canStudy?'disabled':''}>
-          ${newCount===0?'全部单词已学完':(progress.todayNewCount>0?'继续学习 ('+Math.min(perSession,newCount)+'词)':'开始学习 ('+Math.min(perSession,newCount)+'词)')}
-        </button>
-      `:''}
-      ${homeMode==='auto'||homeMode==='review'?`
-        <button class="action-btn primary" onclick="startAutoReview()" ${learnedTotal===0?'disabled':''}>
-          ${learnedTotal>0?'开始复习 ('+Math.min(progress.reviewGoal===0?pendingReviewCount:progress.reviewGoal,learnedTotal)+'词)':'暂无可复习的单词'}
-        </button>
-        <div class="daily-goal-btns" style="margin-top:0">
-          ${reviewOptions.map(o=>`<button class="daily-goal-btn ${progress.reviewGoal===o.v?'active':''}" onclick="setReviewGoal(${o.v})">${o.l}</button>`).join('')}
+    <div class="home-new">
+      <!-- 顶栏 -->
+      <header class="hn-topbar">
+        <div>
+          <span class="hn-title">考研英语核心词</span>
+          <span class="hn-streak">第 ${streak} 天</span>
         </div>
-      `:''}
-      <button class="action-btn secondary" onclick="startWrongWordPractice()" ${wrongCount===0?'disabled':''} style="border-color:${wrongCount>0?'var(--error)':'var(--outline)'};color:${wrongCount>0?'var(--error)':'var(--outline)'}">
-        ${wrongCount>0?'错题本 ('+wrongCount+'词)':'错题本（暂无）'}
-      </button>
-    </div>
-    <!-- 学习时长 -->
-    <div class="timer-card">
-      <div class="timer-item today">
-        <div class="timer-num">${todayMin}<span class="timer-unit"> 分钟</span></div>
-        <div class="timer-label">今日学习时长</div>
-      </div>
-      <div class="timer-item">
-        <div class="timer-num">${totalMin}<span class="timer-unit"> 分钟</span></div>
-        <div class="timer-label">累计学习时长</div>
-      </div>
+        <button class="hn-icon-btn" onclick="hnToggleMenu(true)">•••</button>
+      </header>
+
+      ${resumeHtml ? `<div class="hn-resume">${resumeHtml.replace('class="resume-banner"','class=""').replace('class="resume-banner-title"','class="hn-resume-title"').replace('class="resume-banner-desc"','class="hn-resume-desc"').replace('class="resume-banner-actions"','class="hn-resume-actions"').replace('class="resume-btn-primary"','class="hn-resume-btn-primary"').replace('class="resume-btn-secondary"','class="hn-resume-btn-secondary"')}</div>` : ''}
+
+      <!-- 核心焦点 -->
+      <main class="hn-focus">
+        <div class="hn-mode-switch">
+          <span class="hn-mode-item ${isStudy?'active':''}" onclick="setHomeMode('study')">背新词</span>
+          <span class="hn-mode-item ${!isStudy?'active':''}" onclick="setHomeMode('review')">复习</span>
+        </div>
+        <div class="hn-hero-num">${heroNum}</div>
+        <div class="hn-hero-label">${heroLabel}</div>
+        <div class="hn-progress-line"><div class="hn-progress-fill" style="width:${overallPctRounded}%"></div></div>
+        <div class="hn-stats-text">已掌握 ${masteredCount} · 总掌握率 ${overallPctRounded}%</div>
+        <div class="hn-timer-strip">
+          <div class="hn-timer-item">
+            <span class="hn-timer-num today">${todayMin}</span><span class="hn-timer-unit">分钟</span>
+            <div class="hn-timer-label">今日时长</div>
+          </div>
+          <div class="hn-timer-divider"></div>
+          <div class="hn-timer-item">
+            <span class="hn-timer-num">${totalMin}</span><span class="hn-timer-unit">分钟</span>
+            <div class="hn-timer-label">累计时长</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 底部操作区 -->
+      <footer class="hn-bottom">
+        <div class="hn-goal-selector">
+          ${isStudy
+            ? studyOptions.map(n=>`<button class="hn-goal-btn ${progress.studyGoal===n?'active':''}" onclick="setStudyGoal(${n})">${n}</button>`).join('')
+            : reviewOptions.map(o=>`<button class="hn-goal-btn ${progress.reviewGoal===o.v?'active':''}" onclick="setReviewGoal(${o.v})">${o.l}</button>`).join('')
+          }
+        </div>
+        <button class="hn-start-btn" onclick="${isStudy?'startStudy()':'startAutoReview()'}" ${startBtnDisabled?'disabled':''}>
+          ${startBtnText}
+        </button>
+        <div class="hn-sub-links">
+          <button class="hn-text-link" onclick="showVocabList()">单词表 (${totalCount})</button>
+          <button class="hn-text-link" onclick="startWrongWordPractice()" ${wrongCount===0?'disabled':''}>错题本 (${wrongCount})</button>
+        </div>
+      </footer>
     </div>
 
-    <!-- 总进度 -->
-    <div class="progress-card">
-      <div class="progress-header">
-        <span class="progress-title">总进度</span>
-        <span class="progress-value">${progressDone} / ${totalCount}</span>
+    <!-- 菜单抽屉 -->
+    <div class="hn-menu-mask" id="hn-menu-mask" onclick="hnToggleMenu(false)">
+      <div class="hn-menu-content" onclick="event.stopPropagation()">
+        <button class="hn-menu-item" onclick="showImportModal();hnToggleMenu(false)"><span>导入 Excel 生词</span><span>›</span></button>
+        <button class="hn-menu-item" onclick="exportData();hnToggleMenu(false)"><span>导出备份进度</span><span>.json</span></button>
+        <button class="hn-menu-item" onclick="importData();hnToggleMenu(false)"><span>恢复学习进度</span><span>›</span></button>
+        <button class="hn-menu-item" onclick="exportReviewLogs();hnToggleMenu(false)" id="btn-export-logs"><span>导出复习日志 (FSRS)</span><span>›</span></button>
+        <button class="hn-menu-item" onclick="resetProgress();hnToggleMenu(false)"><span>重置全部进度</span><span>›</span></button>
+        <button class="hn-menu-item" onclick="logout();hnToggleMenu(false)"><span>切换用户</span><span>${escapeHtml(currentUser||'')}</span></button>
+        <button class="hn-menu-close" onclick="hnToggleMenu(false)">取消</button>
       </div>
-      <div class="progress-bar"><div class="progress-bar-fill" style="width:${overallPct}%"></div></div>
-      <div class="progress-detail">
-        <span>已学: <b>${learnedCount}</b></span>
-        <span>掌握: <b>${masteredCount}</b></span>
-        <span>已斩: <b>${ignoredCount}</b></span>
-        <span>待学: <b>${newCount}</b></span>
-      </div>
-    </div>
-
-    <!-- 词库管理 -->
-    <div class="home-section">
-      <div class="home-section-title">词库管理</div>
-    </div>
-    <div class="data-row">
-      <button class="data-btn import-btn" onclick="showImportModal()">导入Excel词汇</button>
-      <button class="data-btn" onclick="showVocabList()">单词表</button>
-      <button class="data-btn" onclick="exportData()">导出进度</button>
-      <button class="data-btn" onclick="importData()">导入进度</button>
-      <button class="data-btn" onclick="exportReviewLogs()" id="btn-export-logs">导出复习日志</button>
-    </div>
-    ${customVocab.length>0?(()=>{
-      const hfTotal=customVocab.filter(w=>w.hfCount>=3).length + (progress&&progress.hfOverrides?Object.keys(progress.hfOverrides).length:0);
-      let info=`<div style="margin:0 20px 8px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--success-container);color:var(--on-success);font-size:12px;font-weight:600">✓ 已导入 ${customVocab.length} 个自定义词汇（已合并到词库）</div>`;
-      if(hfTotal>0){
-        info+=`<div style="margin:0 20px 8px;padding:10px 14px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#FFF3E0,#FFE0B2);color:#E65100;font-size:12px;font-weight:700">${hfTotal} 个高频词已标记 · 背诵时将重点提醒</div>`;
-      }
-      return info;
-    })():''}
-
-    <button class="reset-btn" onclick="resetProgress()">重置全部进度</button>
-    <button class="logout-btn" onclick="logout()">切换用户</button>`;
+    </div>`;
 
   document.getElementById('view-home').innerHTML=html;
-  // Update review log count asynchronously
   getReviewLogCount().then(count=>{
     const btn=document.getElementById('btn-export-logs');
-    if(btn) btn.textContent='导出复习日志'+(count>0?' ('+count+'条)':'');
+    if(btn) btn.innerHTML='<span>导出复习日志 (FSRS)</span><span>'+(count>0?count+'条':'›')+'</span>';
   });
+}
+
+function hnToggleMenu(show){
+  const m=document.getElementById('hn-menu-mask');
+  if(m) m.classList.toggle('show',show);
 }
 
 function setStudyGoal(n){ const clamped = Math.max(100, Math.min(400, n)); progress.studyGoal=clamped; progress.dailyGoal=clamped; saveProgress(); renderHome(); }
