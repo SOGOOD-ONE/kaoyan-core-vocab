@@ -399,8 +399,7 @@ body{
 
 /* ===== FSRS-6 Rating Panel ===== */
 /* ===== FSRS-6 Rating Panel - New Design ===== */
-.fsrs-rating-panel{margin-top:14px}
-.fsrs-rating-title{font-size:12px;color:var(--on-surface-variant);margin-bottom:8px;font-weight:600;text-align:center}
+.fsrs-rating-panel{margin-top:10px}
 .fsrs-rating-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .fsrs-rating-btn{
   border:2px solid var(--outline);background:var(--surface);
@@ -2827,12 +2826,6 @@ function renderCard(){
 
   const resArea = document.getElementById('study-result-area');
   if(resArea) resArea.innerHTML = '';
-
-  // 恢复问题区、选项区、斩词行显示
-  for(const id of ['study-question-card','reveal-btn','options','study-ignore-row']){
-    const el=document.getElementById(id);
-    if(el) el.style.display='';
-  }
 }
 
 // V5: Get translation for an option
@@ -2946,14 +2939,14 @@ function selectOption(index){
     session.retestInserted.add(card.word);
   }
 
-  const hfCount=getWordHfCount(card.word);
-  const hfResult=hfCount>=3?`<div class="result-hf-hint">高频词 · 出现${hfCount}次 · 重点记忆</div>`:'';
+  // 答题后只隐藏斩词行，问题和选项保持原位标记绿/红
+  const ignoreRowEl=document.getElementById('study-ignore-row');
+  if(ignoreRowEl) ignoreRowEl.style.display='none';
 
-  // FSRS-6 rating panel for review modes
-  let ratingPanel='';
+  // 结果区只放继续按钮（学习模式）或 FSRS 评分面板（复习模式）
+  let resultHtml='';
   if(isReviewMode){
-    ratingPanel=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
-      <div class="fsrs-rating-title">请选择这次复习的真实感受（FSRS-6）</div>
+    resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       <div class="fsrs-rating-grid">
         <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">重来<small>忘记了</small></button>
         <button class="fsrs-rating-btn hard" data-rating="2" onclick="applyReviewRating(2)">困难<small>很困难</small></button>
@@ -2961,34 +2954,17 @@ function selectOption(index){
         <button class="fsrs-rating-btn easy" data-rating="4" onclick="applyReviewRating(4)">简单<small>非常轻松</small></button>
       </div>
     </div>`;
+  }else{
+    resultHtml=`<button class="btn-continue" onclick="nextCard()">${isCorrect?'正确 · 继续':'错误 · 继续'} →</button>`;
   }
-
-  const resultHtml=`
-    <div class="result-card" style="text-align:center">
-      <button class="result-speak-btn" onclick="speakWord('${jsStringArg(card.word)}',this)">🔊</button>
-      <div class="result-word" style="font-size:${isReviewMode?'30px':'22px'};font-weight:${isReviewMode?'800':'700'}">${escapeHtml(card.word)}</div>
-      <div class="result-meaning" style="font-size:${isReviewMode?'17px':'16px'};font-weight:${isReviewMode?'500':'400'}">${escapeHtml(card.meaning)}</div>
-      <span class="result-category">${escapeHtml(card.category)}</span>
-      ${hfResult}
-      ${ratingPanel}
-    </div>
-    ${!isReviewMode?`<button class="btn-continue" onclick="nextCard()">${isCorrect?'正确 · 继续':'错误 · 继续'} →</button>`:''}`;
 
   const resArea = document.getElementById('study-result-area');
   if(resArea){
     resArea.innerHTML = resultHtml;
-  } else {
-    document.querySelector('.card-container')?.insertAdjacentHTML('beforeend', `<div id="study-result-area">${resultHtml}</div>`);
-  }
-
-  // 隐藏问题区、选项区、斩词行，结果区原地替代，避免页面高度突变和跳动
-  for(const id of ['study-question-card','reveal-btn','options','study-ignore-row']){
-    const el=document.getElementById(id);
-    if(el) el.style.display='none';
   }
 
   if(isCorrect){
-    setTimeout(()=>{ const sb=document.querySelector('.result-speak-btn'); if(sb) speakWord(card.word, sb); }, 180);
+    setTimeout(()=>{ speakWord(card.word); }, 180);
   }
 
   saveProgress();
