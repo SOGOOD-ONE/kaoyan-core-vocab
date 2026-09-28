@@ -1804,20 +1804,6 @@ function getTodayStart(){
 }
 function getTodayEnd(){ return getTodayStart()+86400000; }
 
-function getDueCount(){
-  // 今日待复习 = 今天新到期 且 今天还没复习过 的词（FSRS-6 标准到期计算）
-  const todayEnd=getTodayEnd();
-  const todayStart=getTodayStart();
-  const all=getAllVocab();
-  return all.filter(w=>{
-    const wp=progress.words[w.word];
-    if(!wp || wp.status==='new' || wp.status==='ignored') return false;
-    if(!wp.nextReview || wp.nextReview<todayStart || wp.nextReview>todayEnd) return false;
-    if(wp.lastReview && wp.lastReview>=todayStart && wp.nextReview>Date.now()) return false; // 今天已复习且还没到期
-    return true;
-  }).length;
-}
-
 function getMasteredCount(){
   // FSRS-6 已掌握标准：state === Review 且 stability >= 30天
   let count=0;
@@ -1965,20 +1951,23 @@ function getAutoReviewWords(){
 
   // 3. V6-EX: 默认模式下补充已掌握词随机复习(防遗忘),优先第一次答错的
   //    用户需求:考前 80 天持续复习,随时点都有词,稳定性高的已掌握词也要重复
-  //    默认模式:每次点"开始复习"都补充,但一天内不重复复习同一个已掌握词
+  //    两级池:优先今天还没复习过的已掌握词;当它们都被过完一轮后,
+  //    降级为"今天已复习过的也能再抽",保证任何时候点"开始复习"都拿得到词
+  //    (否则过完一轮就提示"暂无可复习的单词",与"随时重复"的需求冲突)
   //    自定义模式:第 2 步已按 已掌握优先+wrong>0 填满 reviewGoal,不额外补充
   if(isDefaultMode){
     const todayStart = getTodayStart();
-    const masteredPool = [];
+    const freshPool = [], recycledPool = [];
     for(let i=0; i<learnedWords.length; i++){
       const w = learnedWords[i];
       if(selectedSet.has(w.word)) continue;
       const wp = progress.words[w.word];
       if(!wp || !isWordMastered(wp)) continue;
-      // 排除今天已复习的词,避免一天内重复抽中(第二天会重置)
-      if(wp.lastReview && wp.lastReview >= todayStart) continue;
-      masteredPool.push({ word: w, wrong: wp.wrong || 0 });
+      const item = { word: w, wrong: wp.wrong || 0 };
+      if(wp.lastReview && wp.lastReview >= todayStart) recycledPool.push(item);
+      else freshPool.push(item);
     }
+    const masteredPool = freshPool.length > 0 ? freshPool : recycledPool;
     if(masteredPool.length > 0){
       // 补充量:已掌握词的 5%,最少 5 个,最多 20 个
       const masteredQuota = Math.min(20, Math.max(5, Math.ceil(masteredPool.length * 0.05)));
@@ -2007,7 +1996,7 @@ function computeHomeStats(){
   const all=getAllVocab();
   const words=progress.words;
   let dueCount=0, overdueCount=0, newCount=0, learnedCount=0, ignoredCount=0, wrongCount=0;
-  let masteredAvailable=0;
+  let masteredFresh=0, masteredRecycled=0;
   for(let i=0; i<all.length; i++){
     const w=all[i];
     const wp=words[w.word];
@@ -2030,11 +2019,14 @@ function computeHomeStats(){
     }
     // 错题本:wrong>=3(已排除 ignored)
     if((wp.wrong||0)>=3) wrongCount++;
-    // 已掌握词补充复习候选:今天没复习过的已掌握词
-    if(isWordMastered(wp) && (!wp.lastReview || wp.lastReview<todayStart)){
-      masteredAvailable++;
+    // 已掌握词补充复习候选:优先今天没复习过的;都被过完一轮后降级为可重复复习
+    // (与 getAutoReviewWords 第 3 步的两级池口径保持一致)
+    if(isWordMastered(wp)){
+      if(!wp.lastReview || wp.lastReview<todayStart) masteredFresh++;
+      else masteredRecycled++;
     }
   }
+  const masteredAvailable = masteredFresh>0 ? masteredFresh : masteredRecycled;
   const supplementCount = progress.reviewGoal!==0 ? 0 : Math.min(20, Math.max(5, Math.ceil(masteredAvailable*0.05)));
   return {
     all, totalCount: all.length,
@@ -2975,8 +2967,10 @@ function selectOption(index){
 
   if(isCorrect) session.correctCount++; else session.wrongCount++;
   if(session.answeredWords) session.answeredWords.add(card.word);
-  // Track per-word correct count for study mode (to adjust initial FSRS stability)
-  if(session.type==='study' && isCorrect && session.wordCorrectCount){
+  // 学习模式记录每个词"首轮 3 遍"的答对数，用来换算 FSRS 初始评分。
+  // 必须排除重测卡：否则第 1 遍答错、靠后续重测补对也会凑够 3 次，
+  // 被判成 Easy（初始间隔约 8 天）——本该短间隔巩固的新词反而被推远。
+  if(session.type==='study' && isCorrect && session.wordCorrectCount && !card.isRetest){
     session.wordCorrectCount[card.word] = (session.wordCorrectCount[card.word]||0) + 1;
   }
 
@@ -3304,10 +3298,6 @@ function completeSession(){
       progress.stats.totalCorrect+=session.correctCount;
       progress.stats.totalWrong+=session.wrongCount;
     }
-    // Mark forced review as completed today
-    if(session.type==='review'){
-      progress.lastForcedReviewDate=getToday();
-    }
     const today=getToday();
     if(progress.stats.lastStudyDate!==today){
       const yStr=getYesterday();
@@ -3340,7 +3330,13 @@ function renderComplete(){
   const sessionType=session.type;
   if(sessionType==='study') nextReviewText='这些单词将在明天进入复习';
   else if(sessionType==='auto') nextReviewText='自主复习完成！继续保持';
-  else { const dc=getDueCount(); nextReviewText=dc>0?'还有 '+dc+' 个单词待复习':'今日复习已完成，请明天再来'; }
+  else {
+    // 与主页"待复习"口径保持一致：到期 + 逾期 + 已掌握词补充。
+    // 若只统计到期词，会漏掉补充量，出现"主页显示还有 5 词、完成页却说今日已复习完"的矛盾
+    const st=computeHomeStats();
+    const dc=st.dueCount+st.overdueCount+st.supplementCount;
+    nextReviewText=dc>0?'还有 '+dc+' 个单词待复习':'今日复习已完成，请明天再来';
+  }
   const title= sessionType==='study' ? '学习完成！' : (sessionType==='auto' ? '自主复习完成！' : '复习完成！');
   const sessionMin=getSessionMinutes();
   const todayMin=progress.stats.todayStudyMinutes||0;
