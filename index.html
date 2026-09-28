@@ -2438,7 +2438,7 @@ function renderHome(){
   const heroNum = isStudy ? progress.studyGoal : reviewCount;
   const heroLabel = isStudy
     ? `待学新词 · 词库剩余 ${newCount}`
-    : (progress.reviewGoal===0 ? `今日到期待复习 · FSRS 算法` : `自主复习目标 · 总已学 ${learnedTotal}`);
+    : (progress.reviewGoal===0 ? `今日到期待复习` : `自主复习目标 · 总已学 ${learnedTotal}`);
   const startBtnText = isStudy
     ? (newCount===0 ? '全部单词已学完' : `开始背词 (${Math.min(perSession,newCount)} 词)`)
     : (learnedTotal>0 ? `开始复习 (${reviewCount} 词)` : '暂无可复习的单词');
