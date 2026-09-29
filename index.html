@@ -1714,33 +1714,49 @@ function writeProgressNow(forceSync){
 }
 
 // ===== Session Persistence =====
-function writeSessionNow(){
+function writeSessionNow(forceSync){
   if(!storageAvailable && !dbInstance) return;
   if(!session){
     if(storageAvailable){ try{ localStorage.removeItem(getStorageKey('vocabSession')); }catch(e){} }
     if(dbInstance){ dbDelete(getStorageKey('vocabSession')); }
     return;
   }
-  try{
-    const s={
-      type:session.type, cards:session.cards, currentIndex:session.currentIndex,
-      correctCount:session.correctCount, wrongCount:session.wrongCount,
-      studiedWords:session.studiedWords?[...session.studiedWords]:[],
-      retestQueue:session.retestQueue||[],
-      retestInserted:session.retestInserted?[...session.retestInserted]:[],
-      answeredWords:session.answeredWords?[...session.answeredWords]:[],
-      reviewResults:session.reviewResults||{},
-      wordCorrectCount:session.wordCorrectCount||{},
-      isWrongPractice:session.isWrongPractice||false,
-      isAutoReview:session.isAutoReview||false,
-      startTime:session.startTime||Date.now(),
-      accumulatedTime:session.accumulatedTime||0,
-      lastActiveTime:Date.now()
-    };
-    const key=getStorageKey('vocabSession');
-    if(storageAvailable){ try{ localStorage.setItem(key,JSON.stringify(s)); }catch(e){} }
-    if(dbInstance){ dbSet(key, s); }
-  }catch(e){}
+  const doWrite = () => {
+    try{
+      // 只保存从 currentIndex 起的剩余卡片：已做完的卡对恢复无意义，
+      // 裁掉后序列化体积从几百张降到几十张，JSON.stringify 不再卡主线程。
+      // 同时保存 totalCardCount / savedIndex，恢复后进度显示仍准确。
+      const remainingCards = session.cards.slice(session.currentIndex);
+      const s={
+        type:session.type, cards:remainingCards, currentIndex:0,
+        totalCardCount:session.cards.length,
+        savedIndex:session.currentIndex,
+        correctCount:session.correctCount, wrongCount:session.wrongCount,
+        studiedWords:session.studiedWords?[...session.studiedWords]:[],
+        retestQueue:session.retestQueue||[],
+        retestInserted:session.retestInserted?[...session.retestInserted]:[],
+        answeredWords:session.answeredWords?[...session.answeredWords]:[],
+        reviewResults:session.reviewResults||{},
+        wordCorrectCount:session.wordCorrectCount||{},
+        isWrongPractice:session.isWrongPractice||false,
+        isAutoReview:session.isAutoReview||false,
+        startTime:session.startTime||Date.now(),
+        accumulatedTime:session.accumulatedTime||0,
+        lastActiveTime:Date.now()
+      };
+      const key=getStorageKey('vocabSession');
+      if(storageAvailable){ try{ localStorage.setItem(key,JSON.stringify(s)); }catch(e){} }
+      if(dbInstance){ dbSet(key, s); }
+    }catch(e){}
+  };
+  // 非强制落盘走 idle 回调：JSON.stringify 大 session + localStorage.setItem
+  // 会阻塞主线程几十毫秒，这就是答题后周期性卡顿的根源。
+  // 页面隐藏/卸载时 forceSync=true 必须同步写，否则 idle 回调来不及跑数据会丢。
+  if(!forceSync && typeof window !== 'undefined' && 'requestIdleCallback' in window){
+    window.requestIdleCallback(doWrite, {timeout: 800});
+  } else {
+    doWrite();
+  }
 }
 
 window.addEventListener('pagehide', ()=>{ flushPersistence(true); });
@@ -2425,10 +2441,12 @@ function renderHome(){
   _cachedPendingSession=null;
   let resumeHtml='';
   if(pendingSession && pendingSession.cards && pendingSession.currentIndex<pendingSession.cards.length){
-    const total=pendingSession.cards.length;
-    const idx=pendingSession.currentIndex+1;
+    const total=pendingSession.totalCardCount || pendingSession.cards.length;
+    const idx=(pendingSession.savedIndex || 0)+pendingSession.currentIndex+1;
     const typeLabel=pendingSession.type==='study'?'学习':(pendingSession.type==='review'?'复习':(pendingSession.type==='auto'?'自主复习':'错题本'));
-    const progressPct=Math.round(pendingSession.currentIndex/total*100);
+    // 旧版会话没有 savedIndex，此时 currentIndex 就是已做到的位置
+    const donePos=pendingSession.savedIndex!==undefined?pendingSession.savedIndex:pendingSession.currentIndex;
+    const progressPct=Math.round(donePos/total*100);
     resumeHtml=`
       <div class="resume-banner">
         <div class="resume-banner-title">有未完成的${typeLabel}</div>
@@ -2842,8 +2860,9 @@ function renderCard(){
   const questionText=isCn2En?card.meaning:card.word;
   const questionType=isCn2En?'选择正确的英文单词':'选择正确的中文释义';
   const wordType=isCn2En?'':(card.type||'');
-  const total=session.cards.length;
-  const idx=session.currentIndex+1;
+  // 恢复后的会话只保留剩余卡片，用保存时的总数/位置还原进度显示
+  const total=session.totalCardCount || session.cards.length;
+  const idx=(session.savedIndex || 0)+session.currentIndex+1;
   const hfCount=getWordHfCount(card.word);
 
   ensureStudyViewMounted();
@@ -3335,7 +3354,7 @@ function completeSession(){
 }
 
 function renderComplete(){
-  const total=session.cards.length;
+  const total=session.totalCardCount || session.cards.length;
   const correct=session.correctCount;
   const wrong=session.wrongCount;
   const accuracy=total>0?Math.round(correct/total*100):0;
