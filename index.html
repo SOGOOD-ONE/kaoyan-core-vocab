@@ -1891,14 +1891,10 @@ function getAutoReviewWords(){
 
   let targetCount;
   if(isDefaultMode){
-    // 默认模式：今日固定复习量（每天第一次打开时计算，当天内不再增加）
-    // 每天第一次打开时缓存今日总量
-    if(!progress.todayReviewCount || progress.todayReviewCount<=0){
-      progress.todayReviewCount = dueNow;
-      saveProgress();
-    }
-    // 当天内不超过今日总量，但随着复习会减少
-    targetCount = Math.min(progress.todayReviewCount, dueNow);
+    // 默认模式：取全部当前到期词(dueNow)，复习完后 nextReview 自然推到未来。
+    // 不再用 todayReviewCount 缓存当天首次总量——首页已改为实时计算，
+    // 这里若继续用旧缓存会与首页数字不一致（首页643、进去21）。
+    targetCount = dueNow;
   } else {
     targetCount = progress.reviewGoal;
   }
@@ -2419,16 +2415,11 @@ function renderHome(){
   const progressDone=learnedCount+ignoredCount;
   // 兜底：即使计数口径异常，也不让进度条超过 100% / 出现 NaN
   const overallPct=totalCount>0?Math.min(progressDone/totalCount*100,100):0;
-  // Total pending review = today's due + overdue + 已掌握词补充(防遗忘)
-  const realPending = dueCount + overdueCount + stats.supplementCount;
-  // Daily fixed count: calculate once per day and cache it, so the number doesn't grow during the day
-  if(progress.todayReviewCount <= 0 || progress.todayReviewCount === undefined){
-    progress.todayReviewCount = realPending;
-    saveProgress();
-  }
-  // If real pending is LESS than cached (e.g. user reviewed some), use the lower number
-  // But never let it grow beyond the day's starting count
-  const pendingReviewCount = Math.min(progress.todayReviewCount, realPending);
+  // 待复习数 = 当前真正到期(due + 逾期) + 已掌握词补充。
+  // 不再用 todayReviewCount 缓存"当日首次总量"——它与 getAutoReviewWords
+  // 里的缓存互相覆盖、污染，导致首页显示 643 实际只有 21 的不一致。
+  // 直接实时计算，与点"开始复习"后实际拿到的卡片数完全一致。
+  const pendingReviewCount = Math.min(dueCount + overdueCount, learnedCount) + stats.supplementCount;
 
   const streak=progress.stats.streak||0;
   const todayMin=progress.stats.todayStudyMinutes||0;
