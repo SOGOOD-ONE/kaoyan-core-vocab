@@ -2014,7 +2014,6 @@ function getAutoReviewWords(){
 // 这里合并为 1 次遍历 + 1 次 getMasteredCount()(数据源不同,无法合并)
 function computeHomeStats(){
   const todayStart=getTodayStart();
-  const todayEnd=todayStart+86400000;
   const now=Date.now();
   const all=getAllVocab();
   const words=progress.words;
@@ -2030,11 +2029,13 @@ function computeHomeStats(){
     if(status==='ignored'){ ignoredCount++; continue; }
     // 已学计数(status==='review' 或其他非 new/ignored)
     learnedCount++;
-    // 今日待复习:nextReview 在 [todayStart, todayEnd] 且今天没复习过(或已再次到期)
-    if(wp.nextReview && wp.nextReview>=todayStart && wp.nextReview<=todayEnd){
-      if(!wp.lastReview || wp.lastReview<todayStart || wp.nextReview<=now){
-        dueCount++;
-      }
+    // 今日待复习:只统计当前已到期的词(nextReview <= now)。
+    // 必须与 getAutoReviewWords 的 dueNow 口径一致,否则首页显示数量
+    // 会远大于实际能复习的数量(把今天晚些时候才到期的词也算进去了)。
+    // overdueCount 单独统计 nextReview < todayStart 的逾期词,
+    // dueCount + overdueCount = nextReview <= now,与 dueNow 完全对齐。
+    if(wp.nextReview && wp.nextReview>=todayStart && wp.nextReview<=now){
+      dueCount++;
     }
     // 累积逾期:nextReview < todayStart
     if(wp.nextReview && wp.nextReview<todayStart){
