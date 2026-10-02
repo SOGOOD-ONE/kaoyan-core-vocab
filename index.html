@@ -1143,29 +1143,6 @@ function initDB(){
         const db = e.target.result;
         const tx = e.target.transaction;
         if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
-        if(!db.objectStoreNames.contains('reviewLogs')){
-          // 追加式存储：每条日志一次 add，不再整包读写
-          const logStore = db.createObjectStore('reviewLogs', {autoIncrement:true});
-          logStore.createIndex('byUser', 'u', {unique:false});
-          // 迁移旧格式：kv 里 reviewLogs / reviewLogs_<user> 的整包数组
-          const kv = tx.objectStore('kv');
-          const migrate = kv.openCursor();
-          migrate.onsuccess = (ev)=>{
-            const cursor = ev.target.result;
-            if(!cursor) return;
-            const key = String(cursor.key);
-            if(key === 'reviewLogs' || key.indexOf('reviewLogs_') === 0){
-              const user = key === 'reviewLogs' ? '' : key.slice('reviewLogs_'.length);
-              const oldLogs = Array.isArray(cursor.value) ? cursor.value : [];
-              for(const log of oldLogs){
-                if(!log || typeof log !== 'object') continue;
-                logStore.add({...log, u: user});
-              }
-              cursor.delete();
-            }
-            cursor.continue();
-          };
-        }
       };
       req.onblocked = ()=>{
         // 其他标签页还占着旧版本时会阻塞升级。如果不在这里放行，
@@ -1214,117 +1191,6 @@ function dbDelete(key){
       tx.onerror = ()=>{ resolve(false); };
     }catch(e){ resolve(false); }
   });
-}
-
-// ===== Review Log (for interval optimization) =====
-// 日志按条追加写入 reviewLogs store，不再每次读写整包数组（原先每次评分
-// 都是 O(总条数) 的读+写，复习次数一多就越来越卡）
-function hasReviewLogStore(){
-  return Boolean(dbInstance && dbInstance.objectStoreNames.contains('reviewLogs'));
-}
-
-function dbAddReviewLog(entry){
-  return new Promise((resolve)=>{
-    if(!hasReviewLogStore()){ resolve(false); return; }
-    try{
-      const tx = dbInstance.transaction('reviewLogs', 'readwrite');
-      tx.objectStore('reviewLogs').add(entry);
-      tx.oncomplete = ()=>{ resolve(true); };
-      tx.onerror = ()=>{ resolve(false); };
-    }catch(e){ resolve(false); }
-  });
-}
-
-// 批量追加：会话结算时一次会产生几百条日志(每个新词一条)。
-// 逐条写会开几百个独立事务，每个事务都要经历一次完整提交，
-// 同步写盘时主线程卡顿明显；合并成单个事务只提交一次。
-function dbAddReviewLogs(entries){
-  return new Promise((resolve)=>{
-    if(!hasReviewLogStore() || !entries || !entries.length){ resolve(false); return; }
-    try{
-      const tx = dbInstance.transaction('reviewLogs', 'readwrite');
-      const store = tx.objectStore('reviewLogs');
-      for(let i=0; i<entries.length; i++) store.add(entries[i]);
-      tx.oncomplete = ()=>{ resolve(true); };
-      tx.onerror = ()=>{ resolve(false); };
-    }catch(e){ resolve(false); }
-  });
-}
-
-function dbCountReviewLogs(user){
-  return new Promise((resolve)=>{
-    if(!hasReviewLogStore()){ resolve(0); return; }
-    try{
-      const tx = dbInstance.transaction('reviewLogs', 'readonly');
-      const req = tx.objectStore('reviewLogs').index('byUser').count(IDBKeyRange.only(user));
-      req.onsuccess = ()=>{ resolve(req.result || 0); };
-      req.onerror = ()=>{ resolve(0); };
-    }catch(e){ resolve(0); }
-  });
-}
-
-function dbGetReviewLogs(user){
-  return new Promise((resolve)=>{
-    if(!hasReviewLogStore()){ resolve([]); return; }
-    try{
-      const tx = dbInstance.transaction('reviewLogs', 'readonly');
-      const req = tx.objectStore('reviewLogs').index('byUser').getAll(IDBKeyRange.only(user));
-      req.onsuccess = ()=>{ resolve(Array.isArray(req.result) ? req.result : []); };
-      req.onerror = ()=>{ resolve([]); };
-    }catch(e){ resolve([]); }
-  });
-}
-
-// 构造一条复习日志（不写入）。拆出来是为了让会话结算能先收集再批量落库。
-function buildReviewLogEntry(word, rating, beforeCard, afterCard, sessionType){
-  const api = fsrsApi();
-  return {
-    u: currentUser || '',
-    w: word,
-    t: Date.now(),
-    r: rating, // 评分：1=模糊 Again, 3=记得 Good
-    c: rating===api.Rating.Again ? 0 : 1, // 0=wrong, 1=correct (for compatibility)
-    sb: beforeCard ? beforeCard.stability : 0,
-    db: beforeCard ? beforeCard.difficulty : 0,
-    sa: afterCard ? afterCard.stability : 0,
-    da: afterCard ? afterCard.difficulty : 0,
-    d: beforeCard ? beforeCard.elapsed_days : 0,
-    before: beforeCard,
-    after: afterCard,
-    st: sessionType
-  };
-}
-
-async function logReview(word, rating, beforeCard, afterCard, sessionType){
-  if(!hasReviewLogStore()) return;
-  try{
-    await dbAddReviewLog(buildReviewLogEntry(word, rating, beforeCard, afterCard, sessionType));
-  }catch(e){}
-}
-
-async function getReviewLogCount(){
-  return dbCountReviewLogs(currentUser || '');
-}
-
-async function exportReviewLogs(){
-  if(!hasReviewLogStore()){ showToast('IndexedDB不可用'); return; }
-  const logs = await dbGetReviewLogs(currentUser || '');
-  if(!logs || logs.length===0){ showToast('暂无复习日志'); return; }
-  const exportObj = {
-    user: currentUser,
-    exportDate: getToday(),
-    totalLogs: logs.length,
-    logs: logs
-  };
-  const dataStr = JSON.stringify(exportObj);
-  const blob = new Blob([dataStr], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '复习日志_'+(currentUser||'')+'_'+getToday()+'.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('已导出 '+logs.length+' 条复习日志');
 }
 
 // ===== Vocabulary List =====
@@ -2484,7 +2350,6 @@ function renderHome(){
         <button class="hn-menu-item" onclick="showImportModal();hnToggleMenu(false)"><span>导入 Excel 生词</span><span>›</span></button>
         <button class="hn-menu-item" onclick="exportData();hnToggleMenu(false)"><span>导出备份进度</span><span>.json</span></button>
         <button class="hn-menu-item" onclick="importData();hnToggleMenu(false)"><span>恢复学习进度</span><span>›</span></button>
-        <button class="hn-menu-item" onclick="exportReviewLogs();hnToggleMenu(false)" id="btn-export-logs"><span>导出复习日志</span><span>›</span></button>
         <button class="hn-menu-item" onclick="resetProgress();hnToggleMenu(false)"><span>重置全部进度</span><span>›</span></button>
         <button class="hn-menu-item" onclick="logout();hnToggleMenu(false)"><span>切换用户</span><span>${escapeHtml(currentUser||'')}</span></button>
         <button class="hn-menu-close" onclick="hnToggleMenu(false)">取消</button>
@@ -2492,10 +2357,6 @@ function renderHome(){
     </div>`;
 
   document.getElementById('view-home').innerHTML=html;
-  getReviewLogCount().then(count=>{
-    const btn=document.getElementById('btn-export-logs');
-    if(btn) btn.innerHTML='<span>导出复习日志</span><span>'+(count>0?count+'条':'›')+'</span>';
-  });
 }
 
 function hnToggleMenu(show){
@@ -3045,9 +2906,6 @@ function applyReviewRating(ratingNumber){
     // Update review results
     session.reviewResults[currentCard.word]={rating:ratingNumber,ratingName:fsrsRatingName(rating),state:wp.fsrsState};
 
-    // Log review
-    logReview(currentCard.word,rating,before,serializeFSRSCard(result.card),session.type);
-
     // Update rating panel to show brief confirmation then auto-advance
     const panel=document.getElementById('fsrs-rating-panel');
     if(panel){
@@ -3242,9 +3100,6 @@ function completeSession(){
       const api=fsrsApi();
       const scheduler=getFSRSScheduler();
       const emptyCard=api.createEmptyCard();
-      const emptySerialized=serializeFSRSCard(emptyCard);
-      // 会话结算会一次产生几百条日志，先收集再合并成单个 IndexedDB 事务
-      const pendingLogs=[];
       session.studiedWords.forEach(word=>{
         try{
           const wp=progress.words[word];
@@ -3270,13 +3125,11 @@ function completeSession(){
             };
             progress.words[word]=newWp;
             newLearned++;
-            pendingLogs.push(buildReviewLogEntry(word,rating,emptySerialized,serializeFSRSCard(result.card),'study-init'));
           }
         }catch(e){
           console.error('Error processing word in completeSession:', word, e);
         }
       });
-      if(pendingLogs.length) dbAddReviewLogs(pendingLogs);
       progress.todayNewCount+=newLearned;
       progress.stats.totalLearned+=newLearned;
       progress.stats.totalCorrect+=session.correctCount;
