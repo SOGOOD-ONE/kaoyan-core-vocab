@@ -385,8 +385,6 @@ body{
 .next-review-info{padding:16px;border-radius:12px;background:var(--primary-container);color:var(--on-primary-container);
   font-size:14px;margin-bottom:24px}
 
-/* ===== FSRS-6 Rating Panel ===== */
-/* ===== FSRS-6 Rating Panel - New Design ===== */
 /* ===== 艾宾浩斯评分面板（模糊/记得两键） ===== */
 .fsrs-rating-panel{margin-top:10px}
 .fsrs-rating-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:320px;margin:0 auto}
@@ -593,9 +591,9 @@ body{
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // Legacy, kept for migration
 
 // ===== 艾宾浩斯遗忘曲线调度器 =====
-// 取代原 ts-fsrs(FSSR-6) 调度引擎，改为经典的艾宾浩斯遗忘曲线复习间隔：
-// 每复习一次（答对 Good）间隔按 1→2→4→7→15→30 天递增；
-// Again(忘记)回到最短间隔并计入 lapses；Hard 保持当前间隔；Easy 跳跃两级。
+// 取代原 ts-fsrs(FSRS-6) 调度引擎，改为经典的艾宾浩斯遗忘曲线复习间隔：
+// 每复习一次（记得 Good）间隔按 1→2→4→7→15→30 天递增；
+// 模糊(Again)回到最短间隔（1 天）并计入 lapses。
 // 字段结构(stability/difficulty/state/nextReview 等)保持不变，
 // 兼容已存档数据与所有既有调用点。
 const FSRS_CONFIG = {
@@ -614,10 +612,8 @@ const EB_INTERVALS = REVIEW_INTERVALS;
 function ebNextTier(prevDays, rating){
   let tier = EB_INTERVALS.indexOf(prevDays);
   if(tier < 0) tier = -1; // 不在表中的旧/空数据从 0 天档之前开始（首次答题进 1 天）
-  if(rating===1) return 0;            // Again → 1 天
-  if(rating===2) return Math.max(0, tier); // Hard → 保持（至少 1 天）
-  if(rating===3) return Math.min(tier+1, EB_INTERVALS.length-1); // Good(记得) → 进 1 档
-  return Math.min(tier+1, EB_INTERVALS.length-1);                 // 兜底：视为记得
+  if(rating===1) return 0; // 模糊 → 1 天
+  return Math.min(tier+1, EB_INTERVALS.length-1); // 记得 → 进 1 档
 }
 
 // 纯本地艾宾浩斯调度器：方法形态对齐官方 ts-fsrs scheduler
@@ -649,16 +645,6 @@ function createEbbinghausScheduler(){
       let r = Math.max(0, 1 - elapsed/Math.max(1,days));
       if(format) r *= 100;
       return r;
-    },
-    next_interval(stability, rating){
-      return EB_INTERVALS[ebNextTier(stability, rating || 3)];
-    },
-    repeat(card, now){
-      const res={};
-      for(const [k,rt] of [['again',1],['hard',2],['good',3],['easy',4]]){
-        res[k]=this.next(card, now, rt);
-      }
-      return res;
     }
   };
 }
@@ -673,10 +659,10 @@ async function ensureFSRS(){
 }
 
 function fsrsApi(){
-  // 对齐官方 ts-fsrs 的枚举/工厂形态，使旧调用点零改动
+  // 两档评分：1=模糊 Again（重置 1 天），3=记得 Good（进 1 档）。保留 State 枚举以兼容旧数据。
   return {
     State: { New: 0, Learning: 1, Review: 2, Relearning: 3 },
-    Rating: { Again: 1, Hard: 2, Good: 3, Easy: 4 },
+    Rating: { Again: 1, Good: 3 },
     createEmptyCard: () => ({ due: new Date(), stability: 0, difficulty: 0, elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, state: 0, learning_steps: 0, last_review: null })
   };
 }
@@ -811,7 +797,7 @@ function isWordMastered(wp){
   return false;
 }
 
-// Migrate old word data to FSRS-6 format
+// Migrate old word data to 艾宾浩斯复习卡格式
 function migrateToFSRS6(word){
   if(word.status==='ignored') return; // ignored words don't need FSRS card
   if(word.fsrs){
@@ -846,17 +832,6 @@ function fsrsRetrievability(wordState, now=Date.now()){
   }catch(e){ return 0; }
 }
 
-// Get next interval in days
-function fsrsNextInterval(wordState){
-  try{
-    const scheduler = getFSRSScheduler();
-    if(!scheduler) return 0;
-    const card=typeof wordState==='object' ? getFSRSCard(wordState) : null;
-    if(!card) return 0;
-    return scheduler.next_interval(card.stability,0);
-  }catch(e){ return 0; }
-}
-
 // Apply one official FSRS rating. Returns the scheduler result.
 function applyFSRSRating(wordState,rating,now=Date.now()){
   const scheduler = getFSRSScheduler();
@@ -870,16 +845,6 @@ function applyFSRSRating(wordState,rating,now=Date.now()){
   }
   // Fallback if scheduler is completely unavailable
   return {result:{card},before,after:before};
-}
-
-// Preview all four possible ratings
-function previewFSRS(wordState,now=Date.now()){
-  const scheduler = getFSRSScheduler();
-  const card=getFSRSCard(wordState);
-  if(scheduler && typeof scheduler.repeat==='function'){
-    return scheduler.repeat(card,new Date(now));
-  }
-  return null;
 }
 
 // Check if a card is due for review
@@ -1256,8 +1221,7 @@ function dbDelete(key){
   });
 }
 
-// ===== Review Log (for FSRS parameter optimization) =====
-// FSRS-6 version: logs rating and before/after card states
+// ===== Review Log (for interval optimization) =====
 // 日志按条追加写入 reviewLogs store，不再每次读写整包数组（原先每次评分
 // 都是 O(总条数) 的读+写，复习次数一多就越来越卡）
 function hasReviewLogStore(){
@@ -1323,7 +1287,7 @@ function buildReviewLogEntry(word, rating, beforeCard, afterCard, sessionType){
     u: currentUser || '',
     w: word,
     t: Date.now(),
-    r: rating, // FSRS Rating: 1=Again, 2=Hard, 3=Good, 4=Easy
+    r: rating, // 评分：1=模糊 Again, 3=记得 Good
     c: rating===api.Rating.Again ? 0 : 1, // 0=wrong, 1=correct (for compatibility)
     sb: beforeCard ? beforeCard.stability : 0,
     db: beforeCard ? beforeCard.difficulty : 0,
@@ -1383,7 +1347,6 @@ function getVocabStatusLabel(wp){
   if(!wp) return {text:'未学', cls:'new'};
   if(wp.status==='ignored') return {text:'已斩', cls:'ignored'};
   if(wp.status==='new') return {text:'未学', cls:'new'};
-  // FSRS-6 states
   if(wp.fsrsState==='Learning') return {text:'学习中', cls:'learning'};
   if(wp.fsrsState==='Review'){
     if(isWordMastered(wp)) return {text:'已掌握', cls:'mastered'};
@@ -1832,7 +1795,7 @@ function getTodayStart(){
 function getTodayEnd(){ return getTodayStart()+86400000; }
 
 function getMasteredCount(){
-  // FSRS-6 已掌握标准：state === Review 且 stability >= 30天
+  // 艾宾浩斯已掌握标准：state === Review 且 stability >= 30天
   let count=0;
   for(const w in progress.words){
     if(isWordMastered(progress.words[w])) count++;
@@ -2657,7 +2620,7 @@ function importData(){
             }
             if(progress.todayNewCount===undefined) progress.todayNewCount=0;
             if(progress.todayReviewCount===undefined) progress.todayReviewCount=0;
-            // FSRS-6 migration for imported data
+            // 艾宾浩斯：导入数据统一迁移为复习卡
             if(progress.words && fsrsReady){
               for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
             }
@@ -2997,17 +2960,17 @@ function selectOption(index){
 
   if(isCorrect) session.correctCount++; else session.wrongCount++;
   if(session.answeredWords) session.answeredWords.add(card.word);
-  // 学习模式记录每个词"首轮 3 遍"的答对数，用来换算 FSRS 初始评分。
+  // 学习模式记录每个词"首轮 3 遍"的答对数，用来换算复习初评。
   // 必须排除重测卡：否则第 1 遍答错、靠后续重测补对也会凑够 3 次，
-  // 被判成 Easy（初始间隔约 8 天）——本该短间隔巩固的新词反而被推远。
+  // 被误判为"记得"（间隔拉长）——本该短间隔巩固的新词反而被推远。
   if(session.type==='study' && isCorrect && session.wordCorrectCount && !card.isRetest){
     session.wordCorrectCount[card.word] = (session.wordCorrectCount[card.word]||0) + 1;
   }
 
   const isReviewMode = session.type==='review' || session.type==='auto' || session.type==='wrong';
 
-  // For review modes: track correct/wrong count but DON'T apply FSRS yet
-  // User will select a rating (Again/Hard/Good/Easy) from the rating panel
+  // For review modes: track correct/wrong count but DON'T apply interval yet
+  // 用户稍后在评分面板上点"模糊/记得"决定下一个复习间隔
   if(isReviewMode){
     const wp=progress.words[card.word];
     if(isCorrect){
@@ -3053,7 +3016,7 @@ function selectOption(index){
   saveSession();
 }
 
-// FSRS-6: Apply a 4-level rating after answering
+// 两档评分：点"模糊"或"记得"后应用艾宾浩斯调度结果
 function applyReviewRating(ratingNumber){
   if(!session || !currentCard || !answered) return;
   if(session.ratingApplied) return;
@@ -3291,7 +3254,7 @@ function completeSession(){
         try{
           const wp=progress.words[word];
           if(!wp || wp.status==='new'){
-            // FSRS-6: use official scheduler with rating based on study performance
+            // 学习首轮表现换算两档评分（3次全对→记得，有错→模糊）
             const correctInStudy = session.wordCorrectCount ? (session.wordCorrectCount[word]||0) : 0;
             const rating=fsrsRatingFromStudyResult(correctInStudy);
             const result=scheduler ? scheduler.next(emptyCard,new Date(now),rating) : {card:emptyCard};
@@ -3413,13 +3376,13 @@ document.addEventListener('keydown',e=>{
         toggleReveal();
       }
     } else {
-      if(isReviewMode && !session.ratingApplied && ['1','2','3','4'].includes(e.key)){
+      if(isReviewMode && !session.ratingApplied && ['1','3'].includes(e.key)){
         e.preventDefault();
         applyReviewRating(parseInt(e.key));
       } else if(e.key==='Enter' || e.key===' '){
         e.preventDefault();
         if(isReviewMode && !session.ratingApplied){
-          applyReviewRating(3); // 默认良好
+          applyReviewRating(3); // 默认记得
         } else {
           nextCard();
         }
