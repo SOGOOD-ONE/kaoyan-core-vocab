@@ -596,14 +596,9 @@ const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // Legacy, kept for migration
 // 模糊(Again)回到最短间隔（1 天）并计入 lapses。
 // 字段结构(stability/difficulty/state/nextReview 等)保持不变，
 // 兼容已存档数据与所有既有调用点。
-const FSRS_CONFIG = {
-  request_retention: 0.90,
-  maximum_interval: 36500
-};
 const MASTERED_STABILITY_THRESHOLD = 30; // 间隔 >= 30天 且 state===Review 视为已掌握
 
 let fsrsScheduler = null;
-let fsrsReady = true; // 本地算法，始终就绪
 
 // 艾宾浩斯遗忘曲线：天级复习间隔表
 const EB_INTERVALS = REVIEW_INTERVALS;
@@ -798,7 +793,7 @@ function isWordMastered(wp){
 }
 
 // Migrate old word data to 艾宾浩斯复习卡格式
-function migrateToFSRS6(word){
+function migrateToEB(word){
   if(word.status==='ignored') return; // ignored words don't need FSRS card
   if(word.fsrs){
     // Already migrated, just normalize timestamps
@@ -1597,8 +1592,8 @@ function normalizeProgress(){
     progress.stats.todayStudyMinutes=0;
   }
   // 艾宾浩斯调度器：迁移所有既有词汇状态为复习间隔字段
-  if(progress.words && fsrsReady){
-    for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
+  if(progress.words){
+    for(const w in progress.words){ migrateToEB(progress.words[w]); }
     // V5-EX5: Migrate firstLearned field (fix forced review using lastStudy bug)
     for(const w in progress.words){
       const wp=progress.words[w];
@@ -2489,7 +2484,7 @@ function renderHome(){
         <button class="hn-menu-item" onclick="showImportModal();hnToggleMenu(false)"><span>导入 Excel 生词</span><span>›</span></button>
         <button class="hn-menu-item" onclick="exportData();hnToggleMenu(false)"><span>导出备份进度</span><span>.json</span></button>
         <button class="hn-menu-item" onclick="importData();hnToggleMenu(false)"><span>恢复学习进度</span><span>›</span></button>
-        <button class="hn-menu-item" onclick="exportReviewLogs();hnToggleMenu(false)" id="btn-export-logs"><span>导出复习日志 (FSRS)</span><span>›</span></button>
+        <button class="hn-menu-item" onclick="exportReviewLogs();hnToggleMenu(false)" id="btn-export-logs"><span>导出复习日志</span><span>›</span></button>
         <button class="hn-menu-item" onclick="resetProgress();hnToggleMenu(false)"><span>重置全部进度</span><span>›</span></button>
         <button class="hn-menu-item" onclick="logout();hnToggleMenu(false)"><span>切换用户</span><span>${escapeHtml(currentUser||'')}</span></button>
         <button class="hn-menu-close" onclick="hnToggleMenu(false)">取消</button>
@@ -2499,7 +2494,7 @@ function renderHome(){
   document.getElementById('view-home').innerHTML=html;
   getReviewLogCount().then(count=>{
     const btn=document.getElementById('btn-export-logs');
-    if(btn) btn.innerHTML='<span>导出复习日志 (FSRS)</span><span>'+(count>0?count+'条':'›')+'</span>';
+    if(btn) btn.innerHTML='<span>导出复习日志</span><span>'+(count>0?count+'条':'›')+'</span>';
   });
 }
 
@@ -2621,8 +2616,8 @@ function importData(){
             if(progress.todayNewCount===undefined) progress.todayNewCount=0;
             if(progress.todayReviewCount===undefined) progress.todayReviewCount=0;
             // 艾宾浩斯：导入数据统一迁移为复习卡
-            if(progress.words && fsrsReady){
-              for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
+            if(progress.words){
+              for(const w in progress.words){ migrateToEB(progress.words[w]); }
             }
             // 合并而不是覆盖自定义词库：直接覆盖会丢掉当前用户已导入、
             // 但导出文件里没有的自定义词
@@ -2709,7 +2704,7 @@ function startStudy(){
   renderCard();
 }
 
-// V5-EX4: 复习入口统一走独立的 FSRS 复习流程
+// V5-EX4: 复习入口统一走独立的艾宾浩斯复习流程
 function startReview(){ return startAutoReview(); }
 
 function ensureStudyViewMounted(){
@@ -2991,7 +2986,7 @@ function selectOption(index){
   // 答题后只隐藏斩词行，问题和选项保持原位标记绿/红
   if(e && e.ignoreRow) e.ignoreRow.style.display='none';
 
-  // 结果区只放继续按钮（学习模式）或 FSRS 评分面板（复习模式）
+  // 结果区只放继续按钮（学习模式）或评分面板（复习模式）
   let resultHtml='';
   if(isReviewMode){
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
@@ -3081,7 +3076,7 @@ function applyReviewRating(ratingNumber){
   }catch(e){
     console.error(e);
     session.ratingApplied=false;
-    showToast('FSRS 调度失败，请重试');
+    showToast('调度失败，请重试');
   }
 }
 
