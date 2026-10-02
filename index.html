@@ -6,32 +6,13 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="V3-FSRS6-20260816">
+<meta name="version" content="V3-EB-20261002">
 <title>考研英语核心词</title>
-  <meta name="description" content="基于 FSRS 间隔重复算法的考研英语核心词汇学习系统，支持新学单词两遍英译汉与一遍汉翻英、自主复习">
+  <meta name="description" content="基于艾宾浩斯遗忘曲线的考研英语核心词汇学习系统，支持新学单词两遍英译汉与一遍汉翻英、自主复习">
   <meta property="og:title" content="考研英语核心词">
-  <meta property="og:description" content="基于 FSRS 间隔重复算法的考研英语核心词汇学习系统，支持新学单词两遍英译汉与一遍汉翻英、自主复习">
+  <meta property="og:description" content="基于艾宾浩斯遗忘曲线的考研英语核心词汇学习系统，支持新学单词两遍英译汉与一遍汉翻英、自主复习">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="./fsrs.bundle.js"></script>
-  <script>
-    (function() {
-      if (typeof TSFSRS !== 'undefined') {
-        window.__TSFSRS = TSFSRS;
-        window.__TSFSRSReady = Promise.resolve(TSFSRS);
-        window.__fsrsLoaded = true;
-      } else {
-        window.__TSFSRSReady = import('https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.1/+esm')
-          .then(cdn => {
-            window.__TSFSRS = cdn;
-            window.__fsrsLoaded = true;
-            return cdn;
-          })
-          .catch(e => {
-            console.error('Failed to load ts-fsrs:', e);
-          });
-      }
-    })();
-  </script><style>
+  <style>
 :root{
   --primary:#3B82F6;--on-primary:#FFFFFF;
   --primary-container:#DBEAFE;--on-primary-container:#1E40AF;
@@ -616,58 +597,92 @@ body{
 // ===== Config =====
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // Legacy, kept for migration
 
-// ===== Official ts-fsrs FSRS-6 Adapter =====
-// The scheduling engine is the official ts-fsrs package (FSRS-6).
-// This adapter bridges the official Card/ReviewLog objects with the APP's word structure.
+// ===== 艾宾浩斯遗忘曲线调度器 =====
+// 取代原 ts-fsrs(FSSR-6) 调度引擎，改为经典的艾宾浩斯遗忘曲线复习间隔：
+// 每复习一次（答对 Good）间隔按 1→2→4→7→15→30 天递增；
+// Again(忘记)回到最短间隔并计入 lapses；Hard 保持当前间隔；Easy 跳跃两级。
+// 字段结构(stability/difficulty/state/nextReview 等)保持不变，
+// 兼容已存档数据与所有既有调用点。
 const FSRS_CONFIG = {
   request_retention: 0.90,
-  maximum_interval: 36500,
-  enable_fuzz: true,
-  enable_short_term: true,
-  learning_steps: ['1m', '10m'],
-  relearning_steps: ['10m']
+  maximum_interval: 36500
 };
-const MASTERED_STABILITY_THRESHOLD = 30; // 稳定性 >= 30天 且 state===Review 视为已掌握
+const MASTERED_STABILITY_THRESHOLD = 30; // 间隔 >= 30天 且 state===Review 视为已掌握
 
 let fsrsScheduler = null;
-let fsrsReady = false;
+let fsrsReady = true; // 本地算法，始终就绪
+
+// 艾宾浩斯遗忘曲线：天级复习间隔表
+const EB_INTERVALS = REVIEW_INTERVALS;
+
+// 计算下一个复习间隔（天）：tier = 当前所处间隔档位
+function ebNextTier(prevDays, rating){
+  let tier = EB_INTERVALS.indexOf(prevDays);
+  if(tier < 0) tier = -1; // 不在表中的旧/空数据从 0 天档之前开始（首次答题进 1 天）
+  if(rating===1) return 0;            // Again → 1 天
+  if(rating===2) return Math.max(0, tier); // Hard → 保持（至少 1 天）
+  if(rating===3) return Math.min(tier+1, EB_INTERVALS.length-1); // Good → 进 1 档
+  return Math.min(tier+2, EB_INTERVALS.length-1);                 // Easy → 进 2 档
+}
+
+// 纯本地艾宾浩斯调度器：方法形态对齐官方 ts-fsrs scheduler
+function createEbbinghausScheduler(){
+  return {
+    next(card, now, rating){
+      const days = EB_INTERVALS[ebNextTier(card.scheduled_days || card.stability || 0, rating)];
+      const isAgain = rating===1;
+      const state = (isAgain && (card.reps||0)>=2) ? 3 : (isAgain ? 1 : 2);
+      return {
+        card: {
+          due: new Date(now.getTime() + days*86400000),
+          stability: days,
+          difficulty: 0,
+          elapsed_days: card.last_review ? Math.max(0,(now.getTime()-new Date(card.last_review).getTime())/86400000) : 0,
+          scheduled_days: days,
+          reps: (card.reps||0)+1,
+          lapses: (card.lapses||0)+(isAgain?1:0),
+          state,
+          learning_steps: 0,
+          last_review: new Date(now.getTime())
+        }
+      };
+    },
+    get_retrievability(card, now, format){
+      // 简化估算：距到期日越近，"记忆率"越低（仅用于复习排序）
+      const days = card.scheduled_days || card.stability || 1;
+      const elapsed = card.last_review ? Math.max(0,(now.getTime()-new Date(card.last_review).getTime())/86400000) : 0;
+      let r = Math.max(0, 1 - elapsed/Math.max(1,days));
+      if(format) r *= 100;
+      return r;
+    },
+    next_interval(stability, rating){
+      return EB_INTERVALS[ebNextTier(stability, rating || 3)];
+    },
+    repeat(card, now){
+      const res={};
+      for(const [k,rt] of [['again',1],['hard',2],['good',3],['easy',4]]){
+        res[k]=this.next(card, now, rt);
+      }
+      return res;
+    }
+  };
+}
 
 function getFSRSScheduler(){
-  if(fsrsScheduler) return fsrsScheduler;
-  const api = fsrsApi();
-  if(api && typeof api.fsrs === 'function'){
-    try{
-      fsrsScheduler = api.fsrs(FSRS_CONFIG);
-      fsrsReady = true;
-      return fsrsScheduler;
-    }catch(e){
-      console.error('Failed to create FSRS scheduler:', e);
-    }
-  }
-  return null;
+  if(!fsrsScheduler) fsrsScheduler = createEbbinghausScheduler();
+  return fsrsScheduler;
 }
 
 async function ensureFSRS(){
-  if(fsrsScheduler) return fsrsScheduler;
-  const api = window.__TSFSRS || await window.__TSFSRSReady;
-  if(api && typeof api.fsrs === 'function'){
-    fsrsScheduler = api.fsrs(FSRS_CONFIG);
-    fsrsReady = true;
-    return fsrsScheduler;
-  }
   return getFSRSScheduler();
 }
 
 function fsrsApi(){
-  if(window.__TSFSRS) return window.__TSFSRS;
-  if(typeof TSFSRS !== 'undefined') {
-    window.__TSFSRS = TSFSRS;
-    return window.__TSFSRS;
-  }
+  // 对齐官方 ts-fsrs 的枚举/工厂形态，使旧调用点零改动
   return {
     State: { New: 0, Learning: 1, Review: 2, Relearning: 3 },
     Rating: { Again: 1, Hard: 2, Good: 3, Easy: 4 },
-    createEmptyCard: () => ({ due: new Date(), stability: 0, difficulty: 0, elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, state: 0, last_review: null })
+    createEmptyCard: () => ({ due: new Date(), stability: 0, difficulty: 0, elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, state: 0, learning_steps: 0, last_review: null })
   };
 }
 
@@ -1629,7 +1644,7 @@ function normalizeProgress(){
     progress.stats.todayStudyDate=getToday();
     progress.stats.todayStudyMinutes=0;
   }
-  // FSRS-6 migration: migrate all existing words to official ts-fsrs format
+  // 艾宾浩斯调度器：迁移所有既有词汇状态为复习间隔字段
   if(progress.words && fsrsReady){
     for(const w in progress.words){ migrateToFSRS6(progress.words[w]); }
     // V5-EX5: Migrate firstLearned field (fix forced review using lastStudy bug)
@@ -3510,12 +3525,12 @@ let currentOptionWords = [];
 async function initApp(){
   await loadRemoteVocab();
   await initDB();
-  // Initialize official ts-fsrs (FSRS-6) scheduler before loading progress
+  // 初始化艾宾浩斯调度器（本地算法，无需外部库）后加载进度
   try{
     await ensureFSRS();
   }catch(e){
-    console.error('Failed to load ts-fsrs:',e);
-    showToast('FSRS 模块加载失败，请刷新重试');
+    console.error('Failed to init scheduler:',e);
+    showToast('调度器初始化失败，请刷新重试');
   }
   loadCustomVocab();
   if(dbInstance){
