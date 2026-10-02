@@ -387,19 +387,20 @@ body{
 
 /* ===== FSRS-6 Rating Panel ===== */
 /* ===== FSRS-6 Rating Panel - New Design ===== */
+/* ===== 艾宾浩斯评分面板（模糊/记得两键） ===== */
 .fsrs-rating-panel{margin-top:10px}
-.fsrs-rating-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fsrs-rating-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:320px;margin:0 auto}
 .fsrs-rating-btn{
   border:2px solid var(--outline);background:var(--surface);
-  border-radius:var(--radius-md);padding:10px 4px;cursor:pointer;
+  border-radius:var(--radius-md);padding:12px 4px;cursor:pointer;
   font-weight:700;color:var(--on-surface);
   transition:background-color .12s ease, border-color .12s ease, transform .08s ease;
-  font-size:14px;box-shadow:var(--shadow-sm);
+  font-size:16px;box-shadow:var(--shadow-sm);
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   transform:translateZ(0);will-change:transform;
 }
 .fsrs-rating-btn small{
-  display:block;font-weight:500;font-size:10px;margin-top:2px;
+  display:block;font-weight:500;font-size:11px;margin-top:3px;
   color:var(--on-surface-variant);
 }
 .fsrs-rating-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--shadow-md)}
@@ -409,15 +410,9 @@ body{
 .fsrs-rating-btn.again{color:#DC2626;border-color:#FECACA}
 .fsrs-rating-btn.again:hover{background:#FEF2F2;border-color:#FCA5A5}
 .fsrs-rating-btn.again.active-selected{background:#FEE2E2 !important;border-color:#EF4444 !important;opacity:1 !important}
-.fsrs-rating-btn.hard{color:#EA580C;border-color:#FED7AA}
-.fsrs-rating-btn.hard:hover{background:#FFF7ED;border-color:#FDBA74}
-.fsrs-rating-btn.hard.active-selected{background:#FFEDD5 !important;border-color:#F97316 !important;opacity:1 !important}
 .fsrs-rating-btn.good{color:#059669;border-color:#BBF7D0}
 .fsrs-rating-btn.good:hover{background:#F0FDF4;border-color:#86EFAC}
 .fsrs-rating-btn.good.active-selected{background:#DCFCE7 !important;border-color:#10B981 !important;opacity:1 !important}
-.fsrs-rating-btn.easy{color:#2563EB;border-color:#BFDBFE}
-.fsrs-rating-btn.easy:hover{background:#EFF6FF;border-color:#93C5FD}
-.fsrs-rating-btn.easy.active-selected{background:#DBEAFE !important;border-color:#3B82F6 !important;opacity:1 !important}
 .fsrs-rating-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 .fsrs-state-badge{
   margin-top:10px;padding:8px 14px;border-radius:var(--radius-sm);
@@ -621,8 +616,8 @@ function ebNextTier(prevDays, rating){
   if(tier < 0) tier = -1; // 不在表中的旧/空数据从 0 天档之前开始（首次答题进 1 天）
   if(rating===1) return 0;            // Again → 1 天
   if(rating===2) return Math.max(0, tier); // Hard → 保持（至少 1 天）
-  if(rating===3) return Math.min(tier+1, EB_INTERVALS.length-1); // Good → 进 1 档
-  return Math.min(tier+2, EB_INTERVALS.length-1);                 // Easy → 进 2 档
+  if(rating===3) return Math.min(tier+1, EB_INTERVALS.length-1); // Good(记得) → 进 1 档
+  return Math.min(tier+1, EB_INTERVALS.length-1);                 // 兜底：视为记得
 }
 
 // 纯本地艾宾浩斯调度器：方法形态对齐官方 ts-fsrs scheduler
@@ -705,22 +700,18 @@ function fsrsStateNameCn(state){
   return String(state);
 }
 
-// Rating enum helpers
+// Rating enum helpers（两档：1=模糊 Again, 3=记得 Good）
 function fsrsRatingName(rating){
   const api=fsrsApi();
   if(rating===api.Rating.Again) return 'Again';
-  if(rating===api.Rating.Hard) return 'Hard';
   if(rating===api.Rating.Good) return 'Good';
-  if(rating===api.Rating.Easy) return 'Easy';
   return String(rating);
 }
 
 function fsrsRatingFromStudyResult(correctCount){
+  // 两档语义：全部答对 → 记得（进一档）；有错 → 模糊（重置 1 天）
   const api=fsrsApi();
-  if(correctCount>=3) return api.Rating.Easy;
-  if(correctCount===2) return api.Rating.Good;
-  if(correctCount===1) return api.Rating.Hard;
-  return api.Rating.Again;
+  return correctCount>=3 ? api.Rating.Good : api.Rating.Again;
 }
 
 // Serialize an official Card into a JSON-safe object stored under word.fsrs.
@@ -793,11 +784,9 @@ function syncLegacyFieldsFromCard(wordState, card, rating){
   wordState.nextReview=card.due instanceof Date ? card.due.getTime() : Number(card.due);
   wordState.fsrsState=fsrsStateName(card.state);
 
-  // Legacy level display compatibility
+  // Legacy level display compatibility（两档：模糊-1 / 记得+1）
   if(rating===api.Rating.Again) wordState.level=Math.max(0,(wordState.level||0)-1);
-  else if(rating===api.Rating.Hard) wordState.level=Math.min(6,(wordState.level||0));
-  else if(rating===api.Rating.Good) wordState.level=Math.min(6,(wordState.level||0)+1);
-  else if(rating===api.Rating.Easy) wordState.level=Math.min(6,(wordState.level||0)+2);
+  else wordState.level=Math.min(6,(wordState.level||0)+1);
 
   // "已掌握" = stability >= 30天 AND state === Review
   // ignored status is preserved
@@ -3044,10 +3033,8 @@ function selectOption(index){
   if(isReviewMode){
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       <div class="fsrs-rating-grid">
-        <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">重来<small>忘记了</small></button>
-        <button class="fsrs-rating-btn hard" data-rating="2" onclick="applyReviewRating(2)">困难<small>很困难</small></button>
-        <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">良好<small>正常记住</small></button>
-        <button class="fsrs-rating-btn easy" data-rating="4" onclick="applyReviewRating(4)">简单<small>非常轻松</small></button>
+        <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">模糊<small>没记住，重学</small></button>
+        <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">记得<small>记住了</small></button>
       </div>
     </div>`;
   }else{
@@ -3072,15 +3059,15 @@ function applyReviewRating(ratingNumber){
   if(session.ratingApplied) return;
   session.ratingApplied=true;
   const api=fsrsApi();
-  const ratingMap={1:api.Rating.Again,2:api.Rating.Hard,3:api.Rating.Good,4:api.Rating.Easy};
+  const ratingMap={1:api.Rating.Again,3:api.Rating.Good};
   const rating=ratingMap[ratingNumber];
   const wp=progress.words[currentCard.word];
-  if(!wp){ session.ratingApplied=false; return; }
+  if(!wp || rating===undefined){ session.ratingApplied=false; return; }
   // 调度器缺失时 applyFSRSRating 会静默返回原卡（不做任何调度），
   // 若不在这里拦住，用户会以为评分生效，实际到期时间从未更新
   if(!getFSRSScheduler()){
     session.ratingApplied=false;
-    showToast('FSRS 调度器未就绪，请刷新页面后重试');
+    showToast('调度器未就绪，请刷新页面后重试');
     return;
   }
 
@@ -3310,7 +3297,7 @@ function completeSession(){
             const result=scheduler ? scheduler.next(emptyCard,new Date(now),rating) : {card:emptyCard};
             const newWp={
               status:'review',
-              level:rating===api.Rating.Easy?2:(rating===api.Rating.Good?1:0),
+              level:rating===api.Rating.Good?1:0,
               correct:correctInStudy,
               wrong:Math.max(0, 3 - correctInStudy),
               firstLearned:now,
