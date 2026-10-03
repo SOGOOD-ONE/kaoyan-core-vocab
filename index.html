@@ -276,16 +276,14 @@ body{
 .kw-reveal:hover{color:#52525B}
 .kw-reveal.revealed{color:#3F3F46;font-weight:500}
 
-/* 斩掉整行（卡片样式，与选项一致） */
-.kw-ignore-row{margin-top:14px}
-.kw-ignore-btn{width:100%;min-height:48px;padding:12px 16px;border-radius:14px;background:#fff;
-  border:1px solid rgba(228,228,231,.8);display:flex;align-items:center;justify-content:center;gap:6px;
-  color:#DC2626;font-size:14px;font-weight:500;cursor:pointer;
+/* 斩掉整行（答完题后才出现：小卡片，与评分一起） */
+.kw-ignore-row{margin-top:12px;text-align:center}
+.kw-ignore-btn{width:100%;min-height:40px;padding:8px 16px;border-radius:12px;background:#fff;
+  border:1px solid rgba(228,228,231,.8);color:#DC2626;font-size:14px;font-weight:500;cursor:pointer;
   transition:background-color .12s ease,border-color .12s ease,transform .08s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0)}
 .kw-ignore-btn:hover{background:#FFF5F5;border-color:#FECACA}
 .kw-ignore-btn:active{transform:scale(.99)}
-.kw-ignore-btn svg{width:14px;height:14px}
 
 .btn-continue{display:block;width:100%;margin-top:12px;padding:13px;border-radius:14px;
   border:none;background:#18181B;color:#fff;font-size:15px;font-weight:500;
@@ -348,8 +346,8 @@ body{
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
 .fsrs-rating-btn.again{background:#F4F4F5;color:#3F3F46}
 .fsrs-rating-btn.again:hover{background:#E4E4E7}
-.fsrs-rating-btn.good{background:#18181B;color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
-.fsrs-rating-btn.good:hover{background:#000}
+.fsrs-rating-btn.good{background:#F4F4F5;color:#3F3F46}
+.fsrs-rating-btn.good:hover{background:#E4E4E7}
 .fsrs-rating-btn:active:not(:disabled), .fsrs-rating-btn.active-selected{transform:scale(.95)}
 .fsrs-rating-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 
@@ -2551,13 +2549,10 @@ function ensureStudyViewMounted(){
           }).join('')}
         </div>
         <div class="kw-reveal-row"><button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button></div>
-        <div class="kw-ignore-row" id="study-ignore-row">
-          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>太简单了，斩掉这个词</span>
-          </button>
-        </div>
         <div id="study-result-area"></div>
+        <div class="kw-ignore-row" id="study-ignore-row">
+          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">斩</button>
+        </div>
       </div>
     </div>`;
   cacheStudyEls();
@@ -2648,7 +2643,7 @@ function renderCard(){
     if(opt.trans) opt.trans.textContent = getOptionTranslation(i) || '';
   }
 
-  if(e.ignoreRow) e.ignoreRow.style.display = 'block';
+  if(e.ignoreRow) e.ignoreRow.style.display = 'none';
   if(e.resArea) e.resArea.innerHTML = '';
 
   // 卡片入场动画：先移除 class → 强制 reflow → 重新加上，
@@ -2799,8 +2794,8 @@ function selectOption(index){
     session.retestInserted.add(card.word);
   }
 
-  // 答题后只隐藏斩词行，问题和选项保持原位标记绿/红
-  if(e && e.ignoreRow) e.ignoreRow.style.display='none';
+  // 答题后显示斩行，与评分（模糊/记得）或继续按钮一起出现
+  if(e && e.ignoreRow) e.ignoreRow.style.display='block';
 
   // 选对才展开释义区，且重置为收起的一行态；选错不展开、不透题
   if(isCorrect && e && e.meaningBox){
