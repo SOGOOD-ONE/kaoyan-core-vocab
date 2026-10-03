@@ -248,10 +248,11 @@ body{
 .kw-more svg{width:10px;height:10px;transition:transform .15s}
 .kw-meaning.open .kw-more svg{transform:rotate(180deg)}
 
-/* 四个选项 */
+/* 四个选项（与单词卡同色卡片） */
 .kw-options{display:flex;flex-direction:column;gap:10px;margin-top:12px;will-change:opacity,transform}
-.kw-opt{width:100%;min-height:48px;padding:12px 16px;border-radius:14px;background:#fff;
-  border:1px solid rgba(228,228,231,.8);display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+.kw-opt{width:100%;min-height:48px;padding:12px 16px;border-radius:16px;background:#fff;
+  border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
+  display:flex;flex-direction:column;align-items:stretch;justify-content:center;
   text-align:left;font-size:14px;color:#3F3F46;cursor:pointer;line-height:1.4;
   transition:border-color .12s ease,background-color .12s ease,transform .08s ease,opacity .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
@@ -259,9 +260,9 @@ body{
 .kw-opt.disabled{cursor:default}
 .kw-opt-line{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .kw-opt-text{overflow:hidden;text-overflow:ellipsis}
-.kw-opt.correct{background:rgba(236,253,245,.7);border-color:#10B981;color:#064E3B;font-weight:500}
-.kw-opt.wrong{background:rgba(254,242,242,.7);border-color:#F87171;color:#7F1D1D;animation:kwShake .25s ease-in-out}
-.kw-opt.dimmed{opacity:.4;pointer-events:none}
+.kw-opt.correct{background:rgba(236,253,245,.8);border-color:#34D399;color:#064E3B;font-weight:500}
+.kw-opt.wrong{background:rgba(254,242,242,.8);border-color:#FCA5A5;color:#7F1D1D;animation:kwShake .25s ease-in-out}
+.kw-opt.dimmed{pointer-events:none}
 .kw-opt-ico{display:none;font-weight:700;font-size:14px;flex-shrink:0}
 .kw-opt.correct .kw-opt-ico{display:block;color:#059669}
 .kw-opt.wrong .kw-opt-ico{display:block;color:#EF4444}
@@ -276,10 +277,11 @@ body{
 .kw-reveal:hover{color:#52525B}
 .kw-reveal.revealed{color:#3F3F46;font-weight:500}
 
-/* 斩掉整行（答完题后才出现：小卡片，与评分一起） */
+/* 斩掉（学习模式：答完题后的全宽小卡片，与继续按钮一起） */
 .kw-ignore-row{margin-top:12px;text-align:center}
-.kw-ignore-btn{width:100%;min-height:40px;padding:8px 16px;border-radius:12px;background:#fff;
-  border:1px solid rgba(228,228,231,.8);color:#DC2626;font-size:14px;font-weight:500;cursor:pointer;
+.kw-ignore-btn{width:100%;min-height:44px;padding:8px 16px;border-radius:16px;background:#fff;
+  border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
+  color:#DC2626;font-size:14px;font-weight:500;cursor:pointer;
   transition:background-color .12s ease,border-color .12s ease,transform .08s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0)}
 .kw-ignore-btn:hover{background:#FFF5F5;border-color:#FECACA}
@@ -338,18 +340,20 @@ body{
 .next-review-info{padding:16px;border-radius:12px;background:var(--primary-container);color:var(--on-primary-container);
   font-size:14px;margin-bottom:24px}
 
-/* ===== 评分面板（模糊/记得两键：灰 / 黑） ===== */
+/* ===== 评分面板（斩/模糊/记得：与单词卡同色卡片，一排三键） ===== */
 .fsrs-rating-panel{margin-top:12px}
 .fsrs-rating-grid{display:flex;gap:8px}
-.fsrs-rating-btn{flex:1;height:46px;border-radius:14px;border:none;font-size:14px;font-weight:500;
-  cursor:pointer;transition:background-color .12s ease,transform .08s ease,opacity .15s ease;
+.fsrs-rating-btn{flex:1;height:46px;border-radius:16px;background:#fff;
+  border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
+  font-size:14px;font-weight:500;color:#3F3F46;cursor:pointer;
+  transition:background-color .12s ease,transform .08s ease,opacity .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
-.fsrs-rating-btn.again{background:#F4F4F5;color:#3F3F46}
-.fsrs-rating-btn.again:hover{background:#E4E4E7}
-.fsrs-rating-btn.good{background:#F4F4F5;color:#3F3F46}
-.fsrs-rating-btn.good:hover{background:#E4E4E7}
+.fsrs-rating-btn:hover:not(:disabled){background:#F4F4F5}
 .fsrs-rating-btn:active:not(:disabled), .fsrs-rating-btn.active-selected{transform:scale(.95)}
 .fsrs-rating-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+/* 评分行内的斩按钮：红色字 */
+.kw-ignore-inline{color:#DC2626}
+.kw-ignore-inline:hover{background:#FFF5F5}
 
 /* ===== Toast ===== */
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -2794,8 +2798,8 @@ function selectOption(index){
     session.retestInserted.add(card.word);
   }
 
-  // 答题后显示斩行，与评分（模糊/记得）或继续按钮一起出现
-  if(e && e.ignoreRow) e.ignoreRow.style.display='block';
+  // 答题后：学习模式显示块级斩卡片（与继续按钮一起）；复习模式斩在评分行内
+  if(e && e.ignoreRow) e.ignoreRow.style.display = isReviewMode ? 'none' : 'block';
 
   // 选对才展开释义区，且重置为收起的一行态；选错不展开、不透题
   if(isCorrect && e && e.meaningBox){
@@ -2809,6 +2813,7 @@ function selectOption(index){
   if(isReviewMode){
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       <div class="fsrs-rating-grid">
+        <button class="fsrs-rating-btn kw-ignore-inline" onclick="ignoreCurrentWord()">斩</button>
         <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">模糊</button>
         <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">记得</button>
       </div>
