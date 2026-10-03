@@ -662,10 +662,6 @@ function getFSRSScheduler(){
   return fsrsScheduler;
 }
 
-async function ensureFSRS(){
-  return getFSRSScheduler();
-}
-
 function fsrsApi(){
   // 两档评分：1=模糊 Again（重置 1 天），3=记得 Good（进 1 档）。保留 State 枚举以兼容旧数据。
   return {
@@ -682,15 +678,6 @@ function fsrsStateName(state){
   if(state===api.State.Learning) return 'Learning';
   if(state===api.State.Review) return 'Review';
   if(state===api.State.Relearning) return 'Relearning';
-  return String(state);
-}
-
-function fsrsStateNameCn(state){
-  const api=fsrsApi();
-  if(state===api.State.New) return '新词';
-  if(state===api.State.Learning) return '学习中';
-  if(state===api.State.Review) return '复习中';
-  if(state===api.State.Relearning) return '重学中';
   return String(state);
 }
 
@@ -3351,7 +3338,7 @@ async function initApp(){
   await initDB();
   // 初始化艾宾浩斯调度器（本地算法，无需外部库）后加载进度
   try{
-    await ensureFSRS();
+    getFSRSScheduler();
   }catch(e){
     console.error('Failed to init scheduler:',e);
     showToast('调度器初始化失败，请刷新重试');
