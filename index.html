@@ -603,6 +603,19 @@ let fsrsScheduler = null;
 // 艾宾浩斯遗忘曲线：天级复习间隔表
 const EB_INTERVALS = REVIEW_INTERVALS;
 
+// 把任意天数的旧间隔吸附到最近的艾宾浩斯档位(取 <=days 的最大档位)。
+// 旧 FSRS 存档的 stability 是 8/17/27 等任意值，直接参与 ebNextTier 会
+// 因为 indexOf 查不到档位(tier=-1)而把首次复习"记得"压回 1 天——存量词
+// 的间隔被大幅压缩、集中到期形成复习风暴。吸附后从既有档位继续推进。
+function snapToEBIntervals(days){
+  days = Math.max(0, Math.round(Number(days)||0));
+  if(days<=0) return 0;
+  for(let i=EB_INTERVALS.length-1; i>=0; i--){
+    if(days>=EB_INTERVALS[i]) return EB_INTERVALS[i];
+  }
+  return EB_INTERVALS[0];
+}
+
 // 计算下一个复习间隔（天）：tier = 当前所处间隔档位
 function ebNextTier(prevDays, rating){
   let tier = EB_INTERVALS.indexOf(prevDays);
@@ -796,10 +809,12 @@ function isWordMastered(wp){
 function migrateToEB(word){
   if(word.status==='ignored') return; // ignored words don't need FSRS card
   if(word.fsrs){
-    // Already migrated, just normalize timestamps
+    // Already migrated, just normalize timestamps + snap stability to EB tiers
     const c=hydrateFSRSCard(word.fsrs);
+    const s=snapToEBIntervals(c.stability);
+    c.stability=s; c.scheduled_days=s;
     word.fsrs=serializeFSRSCard(c);
-    word.stability=c.stability;
+    word.stability=s;
     word.difficulty=c.difficulty;
     word.nextReview=c.due.getTime();
     word.fsrsState=fsrsStateName(c.state);
@@ -807,6 +822,8 @@ function migrateToEB(word){
   }
   // Legacy migration: build FSRS card from old fields
   const card=getFSRSCard(word);
+  const s=snapToEBIntervals(card.stability);
+  card.stability=s; card.scheduled_days=s;
   word.fsrs=serializeFSRSCard(card);
   word.stability=card.stability;
   word.difficulty=card.difficulty;
@@ -1869,13 +1886,20 @@ function computeHomeStats(){
     if((wp.wrong||0)>=3) wrongCount++;
     // 已掌握词补充复习候选:优先今天没复习过的;都被过完一轮后降级为可重复复习
     // (与 getAutoReviewWords 第 3 步的两级池口径保持一致)
-    if(isWordMastered(wp)){
+    // 补充基数必须排除"已到期"的已掌握词:它们会走 due 通道被选中,
+    // 若计入则主页 supplementCount 会大于实际能补到的词数(之前对不上账的根因)。
+    if(isWordMastered(wp) && wp.nextReview && wp.nextReview>now){
       if(!wp.lastReview || wp.lastReview<todayStart) masteredFresh++;
       else masteredRecycled++;
     }
   }
   const masteredAvailable = masteredFresh>0 ? masteredFresh : masteredRecycled;
-  const supplementCount = progress.reviewGoal!==0 ? 0 : Math.min(20, Math.max(5, Math.ceil(masteredAvailable*0.05)));
+  // 补充量只在确有未到期已掌握词时按下限 5~20 计算；基数 0 时必须是 0，
+  // 否则主页会凭空多出 5 个(实际抽词时没得补,又对不上账)
+  let supplementCount = 0;
+  if(progress.reviewGoal===0 && masteredAvailable>0){
+    supplementCount=Math.min(20, Math.max(5, Math.ceil(masteredAvailable*0.05)));
+  }
   return {
     all, totalCount: all.length,
     dueCount, overdueCount, newCount, learnedCount, ignoredCount, wrongCount,
@@ -2825,15 +2849,11 @@ function selectOption(index){
 
   const isReviewMode = session.type==='review' || session.type==='auto' || session.type==='wrong';
 
-  // For review modes: track correct/wrong count but DON'T apply interval yet
-  // 用户稍后在评分面板上点"模糊/记得"决定下一个复习间隔
+  // For review modes: track session-level counts only. 单词级的 correct/wrong
+  // 与总统计(totalCorrect/totalWrong)不在答题瞬间累计——由用户按的"模糊/记得"
+  // 评分在 applyReviewRating 里统一定账，否则会出现"答对却按模糊→间隔重置、
+  // 却被记成正确"的统计与调度脱节，重测卡还会重复累计。
   if(isReviewMode){
-    const wp=progress.words[card.word];
-    if(isCorrect){
-      if(wp){ wp.correct=(wp.correct||0)+1; progress.stats.totalCorrect++; }
-    }else{
-      if(wp){ wp.wrong=(wp.wrong||0)+1; progress.stats.totalWrong++; }
-    }
     session.reviewResults[card.word]=isCorrect;
   }
 
@@ -2882,6 +2902,12 @@ function applyReviewRating(ratingNumber){
   const rating=ratingMap[ratingNumber];
   const wp=progress.words[currentCard.word];
   if(!wp || rating===undefined){ session.ratingApplied=false; return; }
+  // 单词级 correct/wrong 与总统计按用户点的评分统一定账，排除重测卡
+  // (重测卡只是首次"模糊"后的补测，再记一次会让同一词重复累计)。
+  if(!(currentCard && currentCard.isRetest)){
+    if(rating===api.Rating.Good){ wp.correct=(wp.correct||0)+1; progress.stats.totalCorrect=(progress.stats.totalCorrect||0)+1; }
+    else{ wp.wrong=(wp.wrong||0)+1; progress.stats.totalWrong=(progress.stats.totalWrong||0)+1; }
+  }
   // 调度器缺失时 applyFSRSRating 会静默返回原卡（不做任何调度），
   // 若不在这里拦住，用户会以为评分生效，实际到期时间从未更新
   if(!getFSRSScheduler()){
