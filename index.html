@@ -269,12 +269,12 @@ body{
 .kw-opt.revealed .kw-opt-trans{display:block}
 @keyframes kwShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
-/* 查看选项释义（键盘空格可切换） */
-.kw-reveal-row{margin-top:12px;text-align:center}
-.kw-reveal{background:none;border:1px dashed #D4D4D8;color:#A1A1AA;font-size:12px;padding:7px 16px;
-  border-radius:99px;cursor:pointer;transition:color .12s,border-color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.kw-reveal:hover{color:#52525B;border-color:#A1A1AA}
-.kw-reveal.revealed{border-style:solid;color:#3F3F46;border-color:#A1A1AA}
+/* 查看选项释义（键盘空格可切换）：选项下方的低调文字按钮 */
+.kw-reveal-row{margin-top:14px;text-align:center}
+.kw-reveal{background:none;border:none;color:#A1A1AA;font-size:12px;padding:6px 12px;cursor:pointer;
+  transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.kw-reveal:hover{color:#52525B}
+.kw-reveal.revealed{color:#3F3F46;font-weight:500}
 
 /* 斩掉整行（卡片样式，与选项一致） */
 .kw-ignore-row{margin-top:14px}
@@ -2539,7 +2539,6 @@ function ensureStudyViewMounted(){
             </button>
           </div>
         </div>
-        <button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button>
         <div class="kw-options" id="options">
           ${[0,1,2,3].map(function(i){
             return `<button class="kw-opt" id="opt-btn-${i}" data-index="${i}" onclick="selectOption(${i})">
@@ -2551,6 +2550,7 @@ function ensureStudyViewMounted(){
             </button>`;
           }).join('')}
         </div>
+        <div class="kw-reveal-row"><button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button></div>
         <div class="kw-ignore-row" id="study-ignore-row">
           <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
