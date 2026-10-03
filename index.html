@@ -202,13 +202,13 @@ body{
   background:var(--primary-container);color:var(--on-primary-container);font-size:13px;font-weight:600}
 
 /* ===== Study / Review（新 UI：灰白极简风） ===== */
-.kw-page{max-width:340px;margin:0 auto;padding:10px 16px 24px;min-height:100vh;display:flex;flex-direction:column}
+.kw-page{max-width:400px;margin:0 auto;padding:12px 18px 24px;min-height:100vh;display:flex;flex-direction:column}
 .kw-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 12px}
 .kw-close{background:none;border:none;color:#A1A1AA;font-size:16px;line-height:1;padding:4px;cursor:pointer;transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-close:hover{color:#52525B}
-.kw-progress-track{width:96px;height:4px;border-radius:99px;background:#E4E4E7;overflow:hidden;flex-shrink:0}
+.kw-progress-track{width:112px;height:4px;border-radius:99px;background:#E4E4E7;overflow:hidden;flex-shrink:0}
 .kw-progress-fill{height:100%;background:#27272A;border-radius:99px;transition:width .2s ease;width:0%}
-.kw-count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#A1A1AA;white-space:nowrap}
+.kw-count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#A1A1AA;white-space:nowrap}
 .kw-card{
   position:relative;background:#fff;border-radius:16px;padding:22px 18px;
   box-shadow:0 4px 20px -4px rgba(0,0,0,.04);border:1px solid rgba(228,228,231,.7);
@@ -222,18 +222,11 @@ body{
 }
 .card-enter{animation:cardEnter .18s cubic-bezier(.2,.7,.3,1) both}
 
-/* 「斩」按钮（卡片右上角） */
-.kw-ignore{position:absolute;top:12px;right:12px;display:flex;align-items:center;gap:2px;padding:3px 8px;
-  border-radius:8px;border:1px solid rgba(254,202,202,.6);background:rgba(254,242,242,.5);
-  color:#DC2626;font-size:11px;font-weight:500;cursor:pointer;transition:background .12s,transform .08s;}
-.kw-ignore:hover{background:rgba(254,226,226,.6)}
-.kw-ignore:active{transform:scale(.9)}
-.kw-ignore svg{width:12px;height:12px}
 .kw-retest{position:absolute;top:12px;left:12px;padding:2px 8px;border-radius:8px;background:#F4F4F5;
-  color:#71717A;font-size:11px;font-weight:500}
+  color:#71717A;font-size:12px;font-weight:500}
 
-.kw-word-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 2px}
-.kw-word{font-size:22px;font-weight:700;letter-spacing:-.3px;color:#18181B;word-break:break-word;line-height:1.3}
+.kw-word-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 2px}
+.kw-word{font-size:26px;font-weight:700;letter-spacing:-.3px;color:#18181B;word-break:break-word;line-height:1.3}
 .kw-speak{background:none;border:none;color:#A1A1AA;padding:4px;cursor:pointer;transition:color .12s,transform .08s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-speak:hover{color:#3F3F46}
 .kw-speak:active{transform:scale(.9)}
@@ -241,25 +234,25 @@ body{
 .kw-speak.speaking{animation:pulse .6s ease infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .kw-hf{margin-top:8px;padding:4px 10px;border-radius:99px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);
-  color:#E65100;font-size:11px;font-weight:600}
+  color:#E65100;font-size:12px;font-weight:600}
 
 /* 选对后才展开的释义区（默认隐藏） */
 .kw-meaning{display:none;align-items:center;justify-content:space-between;gap:8px;
   width:100%;margin-top:14px;padding-top:12px;border-top:1px solid #F4F4F5;text-align:left}
 .kw-meaning.show{display:flex}
-.kw-meaning-text{font-size:12px;font-weight:500;color:#3F3F46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kw-meaning-text{font-size:13px;font-weight:500;color:#3F3F46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kw-meaning.open .kw-meaning-text{white-space:normal}
 .kw-more{flex-shrink:0;display:flex;align-items:center;gap:2px;background:none;border:none;color:#A1A1AA;
-  font-size:11px;cursor:pointer;padding:2px}
+  font-size:12px;cursor:pointer;padding:2px}
 .kw-more:hover{color:#3F3F46}
 .kw-more svg{width:10px;height:10px;transition:transform .15s}
 .kw-meaning.open .kw-more svg{transform:rotate(180deg)}
 
 /* 四个选项 */
-.kw-options{display:flex;flex-direction:column;gap:8px;margin-top:10px;will-change:opacity,transform}
-.kw-opt{width:100%;min-height:44px;padding:10px 14px;border-radius:12px;background:#fff;
+.kw-options{display:flex;flex-direction:column;gap:10px;margin-top:12px;will-change:opacity,transform}
+.kw-opt{width:100%;min-height:48px;padding:12px 16px;border-radius:14px;background:#fff;
   border:1px solid rgba(228,228,231,.8);display:flex;flex-direction:column;align-items:stretch;justify-content:center;
-  text-align:left;font-size:12px;color:#3F3F46;cursor:pointer;line-height:1.4;
+  text-align:left;font-size:14px;color:#3F3F46;cursor:pointer;line-height:1.4;
   transition:border-color .12s ease,background-color .12s ease,transform .08s ease,opacity .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
 .kw-opt:active:not(.disabled){transform:scale(.99)}
@@ -269,29 +262,33 @@ body{
 .kw-opt.correct{background:rgba(236,253,245,.7);border-color:#10B981;color:#064E3B;font-weight:500}
 .kw-opt.wrong{background:rgba(254,242,242,.7);border-color:#F87171;color:#7F1D1D;animation:kwShake .25s ease-in-out}
 .kw-opt.dimmed{opacity:.4;pointer-events:none}
-.kw-opt-ico{display:none;font-weight:700;font-size:12px;flex-shrink:0}
+.kw-opt-ico{display:none;font-weight:700;font-size:14px;flex-shrink:0}
 .kw-opt.correct .kw-opt-ico{display:block;color:#059669}
 .kw-opt.wrong .kw-opt-ico{display:block;color:#EF4444}
-.kw-opt-trans{display:none;margin-top:3px;font-size:11px;color:#A1A1AA}
+.kw-opt-trans{display:none;margin-top:3px;font-size:12px;color:#A1A1AA}
 .kw-opt.revealed .kw-opt-trans{display:block}
 @keyframes kwShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
 /* 查看选项释义（键盘空格可切换） */
 .kw-reveal-row{margin-top:12px;text-align:center}
-.kw-reveal{background:none;border:1px dashed #D4D4D8;color:#A1A1AA;font-size:11px;padding:6px 14px;
+.kw-reveal{background:none;border:1px dashed #D4D4D8;color:#A1A1AA;font-size:12px;padding:7px 16px;
   border-radius:99px;cursor:pointer;transition:color .12s,border-color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-reveal:hover{color:#52525B;border-color:#A1A1AA}
 .kw-reveal.revealed{border-style:solid;color:#3F3F46;border-color:#A1A1AA}
 
-/* 斩掉整行 */
-.kw-ignore-row{margin-top:12px;text-align:center}
-.kw-ignore-btn{padding:6px 16px;border-radius:99px;border:1px solid #FECACA;background:transparent;
-  color:#EF4444;font-size:12px;font-weight:500;cursor:pointer;transition:background-color .12s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.kw-ignore-btn:hover{background:#FFF5F5}
+/* 斩掉整行（卡片样式，与选项一致） */
+.kw-ignore-row{margin-top:14px}
+.kw-ignore-btn{width:100%;min-height:48px;padding:12px 16px;border-radius:14px;background:#fff;
+  border:1px solid rgba(228,228,231,.8);display:flex;align-items:center;justify-content:center;gap:6px;
+  color:#DC2626;font-size:14px;font-weight:500;cursor:pointer;
+  transition:background-color .12s ease,border-color .12s ease,transform .08s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0)}
+.kw-ignore-btn:hover{background:#FFF5F5;border-color:#FECACA}
+.kw-ignore-btn:active{transform:scale(.99)}
+.kw-ignore-btn svg{width:14px;height:14px}
 
-.btn-continue{display:block;width:100%;margin-top:12px;padding:12px;border-radius:12px;
-  border:none;background:#18181B;color:#fff;font-size:13px;font-weight:500;
+.btn-continue{display:block;width:100%;margin-top:12px;padding:13px;border-radius:14px;
+  border:none;background:#18181B;color:#fff;font-size:15px;font-weight:500;
   cursor:pointer;transition:background-color .12s ease,transform .08s ease;animation:fadeIn .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .btn-continue:hover{background:#000}
@@ -346,7 +343,7 @@ body{
 /* ===== 评分面板（模糊/记得两键：灰 / 黑） ===== */
 .fsrs-rating-panel{margin-top:12px}
 .fsrs-rating-grid{display:flex;gap:8px}
-.fsrs-rating-btn{flex:1;height:40px;border-radius:12px;border:none;font-size:12px;font-weight:500;
+.fsrs-rating-btn{flex:1;height:46px;border-radius:14px;border:none;font-size:14px;font-weight:500;
   cursor:pointer;transition:background-color .12s ease,transform .08s ease,opacity .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
 .fsrs-rating-btn.again{background:#F4F4F5;color:#3F3F46}
@@ -2526,10 +2523,6 @@ function ensureStudyViewMounted(){
       </div>
       <div id="study-card-container">
         <div class="kw-card" id="study-question-card">
-          <button class="kw-ignore" onclick="ignoreCurrentWord()" title="斩掉此词" aria-label="斩掉此词">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>斩</span>
-          </button>
           <div class="kw-retest" id="study-pass-badge" style="display:none">重测</div>
           <div class="kw-word-row">
             <div class="kw-word" id="study-question-text"></div>
@@ -2559,7 +2552,10 @@ function ensureStudyViewMounted(){
           }).join('')}
         </div>
         <div class="kw-ignore-row" id="study-ignore-row">
-          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">✗ 太简单了，斩掉</button>
+          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>太简单了，斩掉这个词</span>
+          </button>
         </div>
         <div id="study-result-area"></div>
       </div>
