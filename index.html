@@ -202,10 +202,8 @@ body{
   background:var(--primary-container);color:var(--on-primary-container);font-size:13px;font-weight:600}
 
 /* ===== Study / Review（新 UI：灰白极简风） ===== */
-.kw-page{max-width:400px;margin:0 auto;padding:12px 18px 24px;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.kw-page{max-width:400px;margin:0 auto;padding:12px 18px 24px;min-height:100vh;display:flex;flex-direction:column}
 .kw-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 12px}
-/* 选项与操作区整体贴底，落在右手拇指热区，避免手指上抬 */
-.kw-bottom{margin-top:auto;padding-top:20px;display:flex;flex-direction:column}
 .kw-close{background:none;border:none;color:#A1A1AA;font-size:16px;line-height:1;padding:4px;cursor:pointer;transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-close:hover{color:#52525B}
 .kw-progress-track{width:112px;height:4px;border-radius:99px;background:#E4E4E7;overflow:hidden;flex-shrink:0}
@@ -2543,23 +2541,21 @@ function ensureStudyViewMounted(){
             </button>
           </div>
         </div>
-        <div class="kw-bottom">
-          <div class="kw-options" id="options">
-            ${[0,1,2,3].map(function(i){
-              return `<button class="kw-opt" id="opt-btn-${i}" data-index="${i}" onclick="selectOption(${i})">
-                <div class="kw-opt-line">
-                  <span class="kw-opt-text" id="opt-text-${i}"></span>
-                  <span class="kw-opt-ico" id="opt-ico-${i}"></span>
-                </div>
-                <div class="kw-opt-trans" id="trans-${i}"></div>
-              </button>`;
-            }).join('')}
-          </div>
-          <div class="kw-reveal-row"><button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button></div>
-          <div id="study-result-area"></div>
-          <div class="kw-ignore-row" id="study-ignore-row">
-            <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">斩</button>
-          </div>
+        <div class="kw-options" id="options">
+          ${[0,1,2,3].map(function(i){
+            return `<button class="kw-opt" id="opt-btn-${i}" data-index="${i}" onclick="selectOption(${i})">
+              <div class="kw-opt-line">
+                <span class="kw-opt-text" id="opt-text-${i}"></span>
+                <span class="kw-opt-ico" id="opt-ico-${i}"></span>
+              </div>
+              <div class="kw-opt-trans" id="trans-${i}"></div>
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="kw-reveal-row"><button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button></div>
+        <div id="study-result-area"></div>
+        <div class="kw-ignore-row" id="study-ignore-row">
+          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">斩</button>
         </div>
       </div>
     </div>`;
