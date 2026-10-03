@@ -201,58 +201,19 @@ body{
 .user-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;
   background:var(--primary-container);color:var(--on-primary-container);font-size:13px;font-weight:600}
 
-/* ===== Study ===== */
-.study-topbar{display:flex;align-items:center;padding:14px 18px;gap:12px;position:sticky;top:0;background:var(--background);z-index:10;transform:translateZ(0)}
-.back-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--surface);
-  color:var(--on-surface);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:var(--shadow-sm);border:1px solid var(--outline-variant);transition:background-color .12s ease, transform .08s ease;
-  user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
-}
-.back-btn:hover{background:var(--primary-container);color:var(--primary)}
-.back-btn:active{transform:scale(0.92)}
-.study-progress{flex:1;font-size:14px;font-weight:700;color:var(--on-surface)}
-.study-progress span{color:var(--on-surface-variant);font-weight:500}
-.pass-badge{padding:5px 14px;border-radius:20px;background:var(--primary-container);color:var(--on-primary-container);font-size:12px;font-weight:600;flex-shrink:0}
-
-.study-bar{height:3px;background:var(--outline-variant);margin:0 18px;border-radius:2px;overflow:hidden}
-.study-bar-fill{height:100%;background:var(--primary);border-radius:2px;transition:width .2s ease;will-change:width;transform:translateZ(0)}
-
-.card-container{padding:20px 18px;transform:translateZ(0)}
-
-/* Word Card - New Design */
-.word-card{
-  background:var(--surface);border-radius:var(--radius-xl);
-  padding:32px 24px;text-align:center;margin-bottom:20px;
-  box-shadow:var(--shadow-md);border:1px solid var(--outline-variant);
-  position:relative;
-}
-.word-status-badge{
-  display:inline-block;padding:5px 14px;border-radius:20px;
-  background:var(--primary-light);color:var(--primary);
-  font-size:12px;font-weight:700;margin-bottom:16px;
-  letter-spacing:.5px;
-}
-.word-status-badge.new{background:#FEF3C7;color:#D97706}
-.word-status-badge.learning{background:#DBEAFE;color:#2563EB}
-.word-status-badge.review{background:#D1FAE5;color:#059669}
-.word-status-badge.relearning{background:#FEE2E2;color:#DC2626}
-.word-main{font-size:38px;font-weight:800;color:var(--on-surface);letter-spacing:.5px;word-break:break-word;line-height:1.2}
-.word-meaning{font-size:17px;color:var(--on-surface);margin-top:12px;line-height:1.5;font-weight:500}
-.word-type{font-size:13px;color:var(--on-surface-variant);margin-top:6px}
-.word-fsrs-info{
-  display:flex;justify-content:center;gap:16px;margin-top:16px;
-  font-size:11px;color:var(--on-surface-variant);flex-wrap:wrap;
-}
-.word-fsrs-info span b{color:var(--on-surface);font-weight:600}
-.word-speak-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px}
-
-.question-card{
-  background:var(--surface);border-radius:var(--radius-xl);padding:28px 22px;
-  text-align:center;margin-bottom:18px;min-height:150px;
-  display:flex;flex-direction:column;justify-content:center;align-items:center;
-  box-shadow:var(--shadow-md);border:1px solid var(--outline-variant);
-  transform:translateZ(0);
-  will-change:opacity,transform;
+/* ===== Study / Review（新 UI：灰白极简风） ===== */
+.kw-page{max-width:340px;margin:0 auto;padding:10px 16px 24px;min-height:100vh;display:flex;flex-direction:column}
+.kw-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 12px}
+.kw-close{background:none;border:none;color:#A1A1AA;font-size:16px;line-height:1;padding:4px;cursor:pointer;transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.kw-close:hover{color:#52525B}
+.kw-progress-track{width:96px;height:4px;border-radius:99px;background:#E4E4E7;overflow:hidden;flex-shrink:0}
+.kw-progress-fill{height:100%;background:#27272A;border-radius:99px;transition:width .2s ease;width:0%}
+.kw-count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#A1A1AA;white-space:nowrap}
+.kw-card{
+  position:relative;background:#fff;border-radius:16px;padding:22px 18px;
+  box-shadow:0 4px 20px -4px rgba(0,0,0,.04);border:1px solid rgba(228,228,231,.7);
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  transform:translateZ(0);will-change:opacity,transform;
 }
 /* 卡片入场动画：每次切题时由 JS 重新触发，缓解"僵硬"感 */
 @keyframes cardEnter{
@@ -260,84 +221,81 @@ body{
   to{opacity:1;transform:translateY(0) scale(1)}
 }
 .card-enter{animation:cardEnter .18s cubic-bezier(.2,.7,.3,1) both}
-.question-hint{font-size:13px;color:var(--on-surface-variant);margin-bottom:10px}
-.question-text{font-size:28px;font-weight:700;color:var(--on-surface);line-height:1.4;word-break:break-word}
-.question-type{font-size:14px;color:var(--on-surface-variant);margin-top:8px}
 
-.options{display:flex;flex-direction:column;gap:10px;will-change:opacity,transform}
-.option-btn{
-  display:flex;align-items:center;gap:12px;padding:14px 18px;
-  border-radius:var(--radius-md);border:2px solid var(--outline);background:var(--surface);
-  font-size:15px;cursor:pointer;
-  transition:border-color .12s ease, background-color .12s ease, transform .08s ease, box-shadow .12s ease;
-  text-align:left;color:var(--on-surface);line-height:1.4;
-  box-shadow:var(--shadow-sm);
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  transform:translateZ(0);
-  will-change:transform;
-}
-.option-btn:hover:not(.disabled){border-color:var(--primary);background:var(--primary-light)}
-.option-btn:active:not(.disabled){transform:scale(0.985)}
-.option-btn.disabled{cursor:default}
-.option-btn.correct{border-color:var(--success);background:var(--success-container);color:var(--on-success)}
-.option-btn.wrong{border-color:var(--error);background:var(--error-container);color:var(--on-error)}
-.option-label{width:28px;height:28px;border-radius:50%;background:var(--surface-variant);
-  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.option-btn.correct .option-label{background:var(--success);color:#fff}
-.option-btn.wrong .option-label{background:var(--error);color:#fff}
-.option-translation{font-size:12px;color:var(--on-surface-variant);margin-top:4px;display:none}
-.option-btn.revealed .option-translation{display:block}
+/* 「斩」按钮（卡片右上角） */
+.kw-ignore{position:absolute;top:12px;right:12px;display:flex;align-items:center;gap:2px;padding:3px 8px;
+  border-radius:8px;border:1px solid rgba(254,202,202,.6);background:rgba(254,242,242,.5);
+  color:#DC2626;font-size:11px;font-weight:500;cursor:pointer;transition:background .12s,transform .08s;}
+.kw-ignore:hover{background:rgba(254,226,226,.6)}
+.kw-ignore:active{transform:scale(.9)}
+.kw-ignore svg{width:12px;height:12px}
+.kw-retest{position:absolute;top:12px;left:12px;padding:2px 8px;border-radius:8px;background:#F4F4F5;
+  color:#71717A;font-size:11px;font-weight:500}
 
-.reveal-btn{
-  display:block;width:100%;margin-bottom:14px;padding:11px;
-  border-radius:var(--radius-md);border:1px dashed var(--primary);background:var(--primary-light);
-  color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;
-  transition:background-color .12s ease, border-color .12s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-}
-.reveal-btn:hover{background:var(--primary-container)}
-.reveal-btn.revealed{border-style:solid;background:var(--surface);color:var(--on-surface-variant);border-color:var(--outline)}
-
-.ignore-row{margin-top:14px;text-align:center}
-.ignore-btn{
-  padding:8px 20px;border-radius:20px;border:1px solid #E53E3E;
-  background:transparent;color:#E53E3E;font-size:13px;font-weight:500;
-  cursor:pointer;transition:background-color .12s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-}
-.ignore-btn:hover{background:#FFF5F5}
-
-.result-card{margin-top:16px;padding:18px 20px;border-radius:16px;background:var(--surface-variant);
-  animation:fadeIn .15s ease;position:relative;transform:translateZ(0)}
-.result-word{font-size:22px;font-weight:700;color:var(--primary)}
-.result-type{font-size:14px;color:var(--on-surface-variant);margin-top:4px}
-.result-meaning{font-size:16px;color:var(--on-surface);margin-top:8px;line-height:1.5}
-.result-category{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:12px;
-  background:var(--primary-container);color:var(--on-primary-container);font-size:12px;font-weight:500}
-
-.speak-btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--primary);
-  color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:transform .08s ease, background-color .12s ease;box-shadow:0 2px 8px rgba(0,120,212,.25);
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.speak-btn:hover{background:#106EBE;transform:scale(1.05)}
-.speak-btn:active{transform:scale(.95)}
-.speak-btn.speaking{animation:pulse .6s ease infinite}
+.kw-word-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 2px}
+.kw-word{font-size:22px;font-weight:700;letter-spacing:-.3px;color:#18181B;word-break:break-word;line-height:1.3}
+.kw-speak{background:none;border:none;color:#A1A1AA;padding:4px;cursor:pointer;transition:color .12s,transform .08s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.kw-speak:hover{color:#3F3F46}
+.kw-speak:active{transform:scale(.9)}
+.kw-speak svg{width:16px;height:16px;display:block}
+.kw-speak.speaking{animation:pulse .6s ease infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-.result-speak-btn{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;
-  border:none;background:var(--primary);color:#fff;font-size:16px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:transform .08s ease, background-color .12s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.result-speak-btn:hover{background:#106EBE;transform:scale(1.05)}
-.result-speak-btn:active{transform:scale(.95)}
-.question-speak-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
+.kw-hf{margin-top:8px;padding:4px 10px;border-radius:99px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);
+  color:#E65100;font-size:11px;font-weight:600}
 
-.btn-continue{display:block;width:100%;margin-top:16px;padding:15px;border-radius:16px;
-  border:none;background:var(--primary);color:#fff;font-size:16px;font-weight:600;
-  cursor:pointer;transition:background-color .12s ease, transform .08s ease;animation:fadeIn .15s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.btn-continue:hover{background:#106EBE}
-.btn-continue:active{transform:scale(0.985)}
+/* 选对后才展开的释义区（默认隐藏） */
+.kw-meaning{display:none;align-items:center;justify-content:space-between;gap:8px;
+  width:100%;margin-top:14px;padding-top:12px;border-top:1px solid #F4F4F5;text-align:left}
+.kw-meaning.show{display:flex}
+.kw-meaning-text{font-size:12px;font-weight:500;color:#3F3F46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kw-meaning.open .kw-meaning-text{white-space:normal}
+.kw-more{flex-shrink:0;display:flex;align-items:center;gap:2px;background:none;border:none;color:#A1A1AA;
+  font-size:11px;cursor:pointer;padding:2px}
+.kw-more:hover{color:#3F3F46}
+.kw-more svg{width:10px;height:10px;transition:transform .15s}
+.kw-meaning.open .kw-more svg{transform:rotate(180deg)}
+
+/* 四个选项 */
+.kw-options{display:flex;flex-direction:column;gap:8px;margin-top:10px;will-change:opacity,transform}
+.kw-opt{width:100%;min-height:44px;padding:10px 14px;border-radius:12px;background:#fff;
+  border:1px solid rgba(228,228,231,.8);display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+  text-align:left;font-size:12px;color:#3F3F46;cursor:pointer;line-height:1.4;
+  transition:border-color .12s ease,background-color .12s ease,transform .08s ease,opacity .15s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
+.kw-opt:active:not(.disabled){transform:scale(.99)}
+.kw-opt.disabled{cursor:default}
+.kw-opt-line{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kw-opt-text{overflow:hidden;text-overflow:ellipsis}
+.kw-opt.correct{background:rgba(236,253,245,.7);border-color:#10B981;color:#064E3B;font-weight:500}
+.kw-opt.wrong{background:rgba(254,242,242,.7);border-color:#F87171;color:#7F1D1D;animation:kwShake .25s ease-in-out}
+.kw-opt.dimmed{opacity:.4;pointer-events:none}
+.kw-opt-ico{display:none;font-weight:700;font-size:12px;flex-shrink:0}
+.kw-opt.correct .kw-opt-ico{display:block;color:#059669}
+.kw-opt.wrong .kw-opt-ico{display:block;color:#EF4444}
+.kw-opt-trans{display:none;margin-top:3px;font-size:11px;color:#A1A1AA}
+.kw-opt.revealed .kw-opt-trans{display:block}
+@keyframes kwShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* 查看选项释义（键盘空格可切换） */
+.kw-reveal-row{margin-top:12px;text-align:center}
+.kw-reveal{background:none;border:1px dashed #D4D4D8;color:#A1A1AA;font-size:11px;padding:6px 14px;
+  border-radius:99px;cursor:pointer;transition:color .12s,border-color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.kw-reveal:hover{color:#52525B;border-color:#A1A1AA}
+.kw-reveal.revealed{border-style:solid;color:#3F3F46;border-color:#A1A1AA}
+
+/* 斩掉整行 */
+.kw-ignore-row{margin-top:12px;text-align:center}
+.kw-ignore-btn{padding:6px 16px;border-radius:99px;border:1px solid #FECACA;background:transparent;
+  color:#EF4444;font-size:12px;font-weight:500;cursor:pointer;transition:background-color .12s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.kw-ignore-btn:hover{background:#FFF5F5}
+
+.btn-continue{display:block;width:100%;margin-top:12px;padding:12px;border-radius:12px;
+  border:none;background:#18181B;color:#fff;font-size:13px;font-weight:500;
+  cursor:pointer;transition:background-color .12s ease,transform .08s ease;animation:fadeIn .15s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn-continue:hover{background:#000}
+.btn-continue:active{transform:scale(.99)}
 
 /* ===== Complete ===== */
 .complete-container{padding:60px 24px;text-align:center;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
@@ -385,38 +343,18 @@ body{
 .next-review-info{padding:16px;border-radius:12px;background:var(--primary-container);color:var(--on-primary-container);
   font-size:14px;margin-bottom:24px}
 
-/* ===== 艾宾浩斯评分面板（模糊/记得两键） ===== */
-.fsrs-rating-panel{margin-top:10px}
-.fsrs-rating-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:320px;margin:0 auto}
-.fsrs-rating-btn{
-  border:2px solid var(--outline);background:var(--surface);
-  border-radius:var(--radius-md);padding:12px 4px;cursor:pointer;
-  font-weight:700;color:var(--on-surface);
-  transition:background-color .12s ease, border-color .12s ease, transform .08s ease;
-  font-size:16px;box-shadow:var(--shadow-sm);
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-  transform:translateZ(0);will-change:transform;
-}
-.fsrs-rating-btn small{
-  display:block;font-weight:500;font-size:11px;margin-top:3px;
-  color:var(--on-surface-variant);
-}
-.fsrs-rating-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.fsrs-rating-btn:active:not(:disabled), .fsrs-rating-btn.active-selected{
-  transform:scale(0.95) !important;box-shadow:none !important;
-}
-.fsrs-rating-btn.again{color:#DC2626;border-color:#FECACA}
-.fsrs-rating-btn.again:hover{background:#FEF2F2;border-color:#FCA5A5}
-.fsrs-rating-btn.again.active-selected{background:#FEE2E2 !important;border-color:#EF4444 !important;opacity:1 !important}
-.fsrs-rating-btn.good{color:#059669;border-color:#BBF7D0}
-.fsrs-rating-btn.good:hover{background:#F0FDF4;border-color:#86EFAC}
-.fsrs-rating-btn.good.active-selected{background:#DCFCE7 !important;border-color:#10B981 !important;opacity:1 !important}
+/* ===== 评分面板（模糊/记得两键：灰 / 黑） ===== */
+.fsrs-rating-panel{margin-top:12px}
+.fsrs-rating-grid{display:flex;gap:8px}
+.fsrs-rating-btn{flex:1;height:40px;border-radius:12px;border:none;font-size:12px;font-weight:500;
+  cursor:pointer;transition:background-color .12s ease,transform .08s ease,opacity .15s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
+.fsrs-rating-btn.again{background:#F4F4F5;color:#3F3F46}
+.fsrs-rating-btn.again:hover{background:#E4E4E7}
+.fsrs-rating-btn.good{background:#18181B;color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.fsrs-rating-btn.good:hover{background:#000}
+.fsrs-rating-btn:active:not(:disabled), .fsrs-rating-btn.active-selected{transform:scale(.95)}
 .fsrs-rating-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
-.fsrs-state-badge{
-  margin-top:10px;padding:8px 14px;border-radius:var(--radius-sm);
-  background:var(--primary-light);color:var(--primary);
-  font-size:12px;font-weight:600;text-align:center;
-}
 
 /* ===== Toast ===== */
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -495,12 +433,6 @@ body{
 .import-stats{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;line-height:1.8}
 .import-stats-new{background:var(--success-container);color:var(--success)}
 .import-stats-dup{background:#FFF3E0;color:#E65100;margin-top:8px}
-.question-hf-hint{margin-top:10px;padding:6px 14px;border-radius:12px;
-  background:linear-gradient(135deg,#FFF3E0,#FFE0B2);color:#E65100;font-size:12px;font-weight:600;
-  display:inline-flex;align-items:center;gap:6px;animation:fadeIn .3s ease}
-.result-hf-hint{margin-top:10px;padding:8px 14px;border-radius:12px;
-  background:linear-gradient(135deg,#FFF3E0,#FFE0B2);color:#E65100;font-size:13px;font-weight:600;
-  display:flex;align-items:center;gap:6px}
 
 /* Study timer */
 .timer-card{margin:20px 24px 16px;display:flex;gap:12px}
@@ -515,8 +447,6 @@ body{
 
 @media(max-width:480px){
   #app{box-shadow:none}
-  .question-text{font-size:24px}
-  .word-main{font-size:32px}
   .mode-tab-title{font-size:12px}
   .mode-tab-desc{font-size:10px}
   .stat-num{font-size:20px}
@@ -2588,57 +2518,51 @@ function ensureStudyViewMounted(){
     return container;
   }
   studyView.innerHTML = `
-    <div class="study-topbar">
-      <button class="back-btn" id="study-back-btn" onclick="exitStudy()" title="返回首页" aria-label="返回首页">←</button>
-      <div class="study-progress" id="study-progress-text">0 <span>/ 0</span></div>
-      <div class="pass-badge" id="study-pass-badge" style="display:none">重测</div>
-    </div>
-    <div class="study-bar"><div class="study-bar-fill" id="study-bar-fill" style="width:0%"></div></div>
-    <div class="card-container" id="study-card-container">
-      <div class="question-card" id="study-question-card">
-        <div class="question-hint" id="study-question-hint"></div>
-        <div class="question-text" id="study-question-text"></div>
-        <div class="question-type" id="study-question-type" style="display:none"></div>
-        <div class="question-hf-hint" id="study-hf-badge" style="display:none"></div>
-        <div class="question-speak-row" id="study-speak-row" style="display:none">
-          <button class="speak-btn" id="study-question-speak-btn">🔊</button>
+    <div class="kw-page">
+      <div class="kw-topbar">
+        <button class="kw-close" id="study-back-btn" onclick="exitStudy()" title="返回首页" aria-label="返回首页">✕</button>
+        <div class="kw-progress-track"><div class="kw-progress-fill" id="study-bar-fill" style="width:0%"></div></div>
+        <span class="kw-count" id="study-progress-text">0<span>/ 0</span></span>
+      </div>
+      <div id="study-card-container">
+        <div class="kw-card" id="study-question-card">
+          <button class="kw-ignore" onclick="ignoreCurrentWord()" title="斩掉此词" aria-label="斩掉此词">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>斩</span>
+          </button>
+          <div class="kw-retest" id="study-pass-badge" style="display:none">重测</div>
+          <div class="kw-word-row">
+            <div class="kw-word" id="study-question-text"></div>
+            <button class="kw-speak" id="study-question-speak-btn" style="display:none" title="发音" aria-label="发音">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+            </button>
+          </div>
+          <div class="kw-hf" id="study-hf-badge" style="display:none"></div>
+          <div class="kw-meaning" id="kw-meaning-box">
+            <p class="kw-meaning-text" id="kw-meaning-text"></p>
+            <button class="kw-more" id="kw-more-btn" onclick="toggleMeaning()" aria-label="全部释义">
+              <span id="kw-more-label">全部释义</span>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
         </div>
+        <button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button>
+        <div class="kw-options" id="options">
+          ${[0,1,2,3].map(function(i){
+            return `<button class="kw-opt" id="opt-btn-${i}" data-index="${i}" onclick="selectOption(${i})">
+              <div class="kw-opt-line">
+                <span class="kw-opt-text" id="opt-text-${i}"></span>
+                <span class="kw-opt-ico" id="opt-ico-${i}"></span>
+              </div>
+              <div class="kw-opt-trans" id="trans-${i}"></div>
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="kw-ignore-row" id="study-ignore-row">
+          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">✗ 太简单了，斩掉</button>
+        </div>
+        <div id="study-result-area"></div>
       </div>
-      <button class="reveal-btn" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button>
-      <div class="options" id="options">
-        <button class="option-btn" id="opt-btn-0" data-index="0" onclick="selectOption(0)">
-          <span class="option-label">A</span>
-          <div style="flex:1">
-            <div id="opt-text-0"></div>
-            <div class="option-translation" id="trans-0"></div>
-          </div>
-        </button>
-        <button class="option-btn" id="opt-btn-1" data-index="1" onclick="selectOption(1)">
-          <span class="option-label">B</span>
-          <div style="flex:1">
-            <div id="opt-text-1"></div>
-            <div class="option-translation" id="trans-1"></div>
-          </div>
-        </button>
-        <button class="option-btn" id="opt-btn-2" data-index="2" onclick="selectOption(2)">
-          <span class="option-label">C</span>
-          <div style="flex:1">
-            <div id="opt-text-2"></div>
-            <div class="option-translation" id="trans-2"></div>
-          </div>
-        </button>
-        <button class="option-btn" id="opt-btn-3" data-index="3" onclick="selectOption(3)">
-          <span class="option-label">D</span>
-          <div style="flex:1">
-            <div id="opt-text-3"></div>
-            <div class="option-translation" id="trans-3"></div>
-          </div>
-        </button>
-      </div>
-      <div class="ignore-row" id="study-ignore-row">
-        <button class="ignore-btn" onclick="ignoreCurrentWord()">✗ 太简单了，斩掉</button>
-      </div>
-      <div id="study-result-area"></div>
     </div>`;
   cacheStudyEls();
   return document.getElementById('study-card-container');
@@ -2652,17 +2576,18 @@ function cacheStudyEls(){
     prog:document.getElementById('study-progress-text'),
     passBadge:document.getElementById('study-pass-badge'),
     fill:document.getElementById('study-bar-fill'),
-    hint:document.getElementById('study-question-hint'),
     qText:document.getElementById('study-question-text'),
-    qType:document.getElementById('study-question-type'),
     hf:document.getElementById('study-hf-badge'),
-    speakRow:document.getElementById('study-speak-row'),
     speakBtn:document.getElementById('study-question-speak-btn'),
     revealBtn:document.getElementById('reveal-btn'),
+    meaningBox:document.getElementById('kw-meaning-box'),
+    meaningText:document.getElementById('kw-meaning-text'),
+    moreLabel:document.getElementById('kw-more-label'),
     opts:[0,1,2,3].map(i=>({
       btn:document.getElementById('opt-btn-'+i),
       text:document.getElementById('opt-text-'+i),
-      trans:document.getElementById('trans-'+i)
+      trans:document.getElementById('trans-'+i),
+      ico:document.getElementById('opt-ico-'+i)
     })),
     ignoreRow:document.getElementById('study-ignore-row'),
     resArea:document.getElementById('study-result-area'),
@@ -2684,8 +2609,6 @@ function renderCard(){
   const card=currentCard;
   const isCn2En=card.passType==='cn2en';
   const questionText=isCn2En?card.meaning:card.word;
-  const questionType=isCn2En?'选择正确的英文单词':'选择正确的中文释义';
-  const wordType=isCn2En?'':(card.type||'');
   // 恢复后的会话只保留剩余卡片，用保存时的总数/位置还原进度显示
   const total=session.totalCardCount || session.cards.length;
   const idx=(session.savedIndex || 0)+session.currentIndex+1;
@@ -2694,36 +2617,38 @@ function renderCard(){
   ensureStudyViewMounted();
   const e=_studyEls;
 
-  if(e.prog) e.prog.innerHTML = `${idx} <span>/ ${total}</span>`;
+  if(e.prog) e.prog.innerHTML = idx+'<span>/'+total+'</span>';
   if(e.passBadge) e.passBadge.style.display = card.isRetest ? 'block' : 'none';
   if(e.fill) e.fill.style.width = (idx/total*100)+'%';
-  if(e.hint) e.hint.textContent = questionType;
   if(e.qText) e.qText.textContent = questionText;
-  if(e.qType){
-    if(wordType){ e.qType.textContent = wordType; e.qType.style.display = 'block'; }
-    else { e.qType.style.display = 'none'; }
-  }
   if(e.hf){
     if(hfCount>=3){ e.hf.textContent = `高频词 · 出现${hfCount}次 · 重点记忆`; e.hf.style.display='block'; }
     else { e.hf.style.display='none'; }
   }
-  if(e.speakRow && e.speakBtn){
+  if(e.speakBtn){
     if(!isCn2En){
-      e.speakRow.style.display = 'flex';
+      e.speakBtn.style.display = 'block';
       e.speakBtn.onclick = function(){ speakWord(card.word, this); };
     } else {
-      e.speakRow.style.display = 'none';
+      e.speakBtn.style.display = 'none';
+      e.speakBtn.onclick = null;
     }
   }
+  // 释义区内容 = 词性+释义，默认隐藏并收起（选对后才展开）
+  if(e.meaningText) e.meaningText.textContent = (card.type?card.type+' ':'')+card.meaning;
+  if(e.meaningBox){ e.meaningBox.classList.remove('show','open'); }
+  if(e.moreLabel) e.moreLabel.textContent = '全部释义';
   if(e.revealBtn){
-    e.revealBtn.className = 'reveal-btn';
+    e.revealBtn.className = 'kw-reveal';
     e.revealBtn.textContent = isCn2En ? '查看选项释义' : '查看选项英文';
   }
 
+  const letters=['A','B','C','D'];
   for(let i=0; i<4; i++){
     const opt=e.opts[i];
-    if(opt.btn) opt.btn.className = 'option-btn';
-    if(opt.text) opt.text.textContent = currentOptions[i] || '';
+    if(opt.btn) opt.btn.className = 'kw-opt';
+    if(opt.text) opt.text.textContent = (letters[i]+'. ') + (currentOptions[i] || '');
+    if(opt.ico) opt.ico.textContent = '';
     if(opt.trans) opt.trans.textContent = getOptionTranslation(i) || '';
   }
 
@@ -2774,6 +2699,24 @@ function toggleReveal(){
   }
 }
 
+// 释义区"全部释义"展开/收起切换（flag 用于切题时强制重置状态）
+function toggleMeaning(forceOpen){
+  const e=_studyEls;
+  if(!e || !e.meaningBox) return;
+  if(forceOpen===true){
+    e.meaningBox.classList.add('open');
+    if(e.moreLabel) e.moreLabel.textContent='收起';
+    return;
+  }
+  if(forceOpen===false){
+    e.meaningBox.classList.remove('open');
+    if(e.moreLabel) e.moreLabel.textContent='全部释义';
+    return;
+  }
+  const open=e.meaningBox.classList.toggle('open');
+  if(e.moreLabel) e.moreLabel.textContent=open?'收起':'全部释义';
+}
+
 // 斩词：将单词标记为ignored，不再参与任何复习，但保留在词库和学习记录中
 function ignoreCurrentWord(){
   if(!session || !currentCard) return;
@@ -2817,11 +2760,20 @@ function selectOption(index){
 
   for(let i=0; i<currentOptions.length; i++){
     const btn=e?e.opts[i].btn:document.getElementById('opt-btn-'+i);
+    const ico=e?e.opts[i].ico:document.getElementById('opt-ico-'+i);
     if(btn){
       btn.classList.add('disabled');
-      const val=currentOptions[i];
-      if(val.toLowerCase()===correctVal.toLowerCase()) btn.classList.add('correct');
-      else if(i===index) btn.classList.add('wrong');
+      if(i===index && isCorrect){
+        // 选对：该按钮淡绿 + ✓，其余选项淡化禁用
+        btn.classList.add('correct');
+        if(ico) ico.textContent='✓';
+      } else if(i===index){
+        // 选错：按钮红标 + ✕ + 抖动，不展开释义不透题
+        btn.classList.add('wrong');
+        if(ico) ico.textContent='✕';
+      } else {
+        btn.classList.add('dimmed');
+      }
     }
   }
 
@@ -2854,13 +2806,20 @@ function selectOption(index){
   // 答题后只隐藏斩词行，问题和选项保持原位标记绿/红
   if(e && e.ignoreRow) e.ignoreRow.style.display='none';
 
+  // 选对才展开释义区，且重置为收起的一行态；选错不展开、不透题
+  if(isCorrect && e && e.meaningBox){
+    e.meaningBox.classList.add('show');
+    if(e.moreLabel) e.moreLabel.textContent='全部释义';
+    e.meaningBox.classList.remove('open');
+  }
+
   // 结果区只放继续按钮（学习模式）或评分面板（复习模式）
   let resultHtml='';
   if(isReviewMode){
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       <div class="fsrs-rating-grid">
-        <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">模糊<small>没记住，重学</small></button>
-        <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">记得<small>记住了</small></button>
+        <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">模糊</button>
+        <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">记得</button>
       </div>
     </div>`;
   }else{
