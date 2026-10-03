@@ -202,15 +202,15 @@ body{
   background:var(--primary-container);color:var(--on-primary-container);font-size:13px;font-weight:600}
 
 /* ===== Study / Review（新 UI：灰白极简风） ===== */
-.kw-page{max-width:400px;margin:0 auto;padding:12px 18px 24px;min-height:100vh;display:flex;flex-direction:column}
+.kw-page{max-width:430px;margin:0 auto;padding:12px 18px 24px;min-height:100vh;display:flex;flex-direction:column}
 .kw-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 12px}
-.kw-close{background:none;border:none;color:#A1A1AA;font-size:16px;line-height:1;padding:4px;cursor:pointer;transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.kw-close{background:none;border:none;color:#A1A1AA;font-size:17px;line-height:1;padding:4px;cursor:pointer;transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-close:hover{color:#52525B}
-.kw-progress-track{width:112px;height:4px;border-radius:99px;background:#E4E4E7;overflow:hidden;flex-shrink:0}
+.kw-progress-track{width:130px;height:5px;border-radius:99px;background:#E4E4E7;overflow:hidden;flex-shrink:0}
 .kw-progress-fill{height:100%;background:#27272A;border-radius:99px;transition:width .2s ease;width:0%}
-.kw-count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#A1A1AA;white-space:nowrap}
+.kw-count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;color:#A1A1AA;white-space:nowrap}
 .kw-card{
-  position:relative;background:#fff;border-radius:16px;padding:22px 18px;
+  position:relative;background:#fff;border-radius:18px;padding:24px 20px;
   box-shadow:0 4px 20px -4px rgba(0,0,0,.04);border:1px solid rgba(228,228,231,.7);
   display:flex;flex-direction:column;align-items:center;text-align:center;
   transform:translateZ(0);will-change:opacity,transform;
@@ -223,37 +223,37 @@ body{
 .card-enter{animation:cardEnter .18s cubic-bezier(.2,.7,.3,1) both}
 
 .kw-retest{position:absolute;top:12px;left:12px;padding:2px 8px;border-radius:8px;background:#F4F4F5;
-  color:#71717A;font-size:12px;font-weight:500}
+  color:#71717A;font-size:13px;font-weight:500}
 
 .kw-word-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 2px}
-.kw-word{font-size:26px;font-weight:700;letter-spacing:-.3px;color:#18181B;word-break:break-word;line-height:1.3}
+.kw-word{font-size:28px;font-weight:700;letter-spacing:-.3px;color:#18181B;word-break:break-word;line-height:1.3}
 .kw-speak{background:none;border:none;color:#A1A1AA;padding:4px;cursor:pointer;transition:color .12s,transform .08s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-speak:hover{color:#3F3F46}
 .kw-speak:active{transform:scale(.9)}
-.kw-speak svg{width:16px;height:16px;display:block}
+.kw-speak svg{width:18px;height:18px;display:block}
 .kw-speak.speaking{animation:pulse .6s ease infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .kw-hf{margin-top:8px;padding:4px 10px;border-radius:99px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);
-  color:#E65100;font-size:12px;font-weight:600}
+  color:#E65100;font-size:13px;font-weight:600}
 
 /* 选对后才展开的释义区（默认隐藏） */
 .kw-meaning{display:none;align-items:center;justify-content:space-between;gap:8px;
   width:100%;margin-top:14px;padding-top:12px;border-top:1px solid #F4F4F5;text-align:left}
 .kw-meaning.show{display:flex}
-.kw-meaning-text{font-size:13px;font-weight:500;color:#3F3F46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kw-meaning-text{font-size:14px;font-weight:500;color:#3F3F46;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kw-meaning.open .kw-meaning-text{white-space:normal}
 .kw-more{flex-shrink:0;display:flex;align-items:center;gap:2px;background:none;border:none;color:#A1A1AA;
-  font-size:12px;cursor:pointer;padding:2px}
+  font-size:13px;cursor:pointer;padding:2px}
 .kw-more:hover{color:#3F3F46}
-.kw-more svg{width:10px;height:10px;transition:transform .15s}
+.kw-more svg{width:11px;height:11px;transition:transform .15s}
 .kw-meaning.open .kw-more svg{transform:rotate(180deg)}
 
 /* 四个选项（与单词卡同色卡片） */
-.kw-options{display:flex;flex-direction:column;gap:10px;margin-top:12px;will-change:opacity,transform}
-.kw-opt{width:100%;min-height:48px;padding:12px 16px;border-radius:16px;background:#fff;
+.kw-options{display:flex;flex-direction:column;gap:11px;margin-top:14px;will-change:opacity,transform}
+.kw-opt{width:100%;min-height:52px;padding:13px 18px;border-radius:18px;background:#fff;
   border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
   display:flex;flex-direction:column;align-items:stretch;justify-content:center;
-  text-align:left;font-size:14px;color:#3F3F46;cursor:pointer;line-height:1.4;
+  text-align:left;font-size:15px;color:#3F3F46;cursor:pointer;line-height:1.4;
   transition:border-color .12s ease,background-color .12s ease,transform .08s ease,opacity .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
 .kw-opt:active:not(.disabled){transform:scale(.99)}
@@ -263,32 +263,32 @@ body{
 .kw-opt.correct{background:rgba(236,253,245,.8);border-color:#34D399;color:#064E3B;font-weight:500}
 .kw-opt.wrong{background:rgba(254,242,242,.8);border-color:#FCA5A5;color:#7F1D1D;animation:kwShake .25s ease-in-out}
 .kw-opt.dimmed{pointer-events:none}
-.kw-opt-ico{display:none;font-weight:700;font-size:14px;flex-shrink:0}
+.kw-opt-ico{display:none;font-weight:700;font-size:15px;flex-shrink:0}
 .kw-opt.correct .kw-opt-ico{display:block;color:#059669}
 .kw-opt.wrong .kw-opt-ico{display:block;color:#EF4444}
-.kw-opt-trans{display:none;margin-top:3px;font-size:12px;color:#A1A1AA}
+.kw-opt-trans{display:none;margin-top:3px;font-size:13px;color:#A1A1AA}
 .kw-opt.revealed .kw-opt-trans{display:block}
 @keyframes kwShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
 /* 查看选项释义（键盘空格可切换）：选项下方的低调文字按钮 */
-.kw-reveal-row{margin-top:14px;text-align:center}
-.kw-reveal{background:none;border:none;color:#A1A1AA;font-size:12px;padding:6px 12px;cursor:pointer;
+.kw-reveal-row{margin-top:16px;text-align:center}
+.kw-reveal{background:none;border:none;color:#A1A1AA;font-size:13px;padding:6px 12px;cursor:pointer;
   transition:color .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .kw-reveal:hover{color:#52525B}
 .kw-reveal.revealed{color:#3F3F46;font-weight:500}
 
 /* 斩掉（学习模式：答完题后的全宽小卡片，与继续按钮一起） */
-.kw-ignore-row{margin-top:12px;text-align:center}
-.kw-ignore-btn{width:100%;min-height:44px;padding:8px 16px;border-radius:16px;background:#fff;
+.kw-ignore-row{margin-top:14px;text-align:center}
+.kw-ignore-btn{width:100%;min-height:48px;padding:9px 16px;border-radius:18px;background:#fff;
   border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
-  color:#DC2626;font-size:14px;font-weight:500;cursor:pointer;
+  color:#DC2626;font-size:15px;font-weight:500;cursor:pointer;
   transition:background-color .12s ease,border-color .12s ease,transform .08s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0)}
 .kw-ignore-btn:hover{background:#FFF5F5;border-color:#FECACA}
 .kw-ignore-btn:active{transform:scale(.99)}
 
-.btn-continue{display:block;width:100%;margin-top:12px;padding:13px;border-radius:14px;
-  border:none;background:#18181B;color:#fff;font-size:15px;font-weight:500;
+.btn-continue{display:block;width:100%;margin-top:14px;padding:15px;border-radius:16px;
+  border:none;background:#18181B;color:#fff;font-size:16px;font-weight:500;
   cursor:pointer;transition:background-color .12s ease,transform .08s ease;animation:fadeIn .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .btn-continue:hover{background:#000}
@@ -341,11 +341,11 @@ body{
   font-size:14px;margin-bottom:24px}
 
 /* ===== 评分面板（斩/模糊/记得：与单词卡同色卡片，一排三键） ===== */
-.fsrs-rating-panel{margin-top:12px}
+.fsrs-rating-panel{margin-top:14px}
 .fsrs-rating-grid{display:flex;gap:8px}
-.fsrs-rating-btn{flex:1;height:46px;border-radius:16px;background:#fff;
+.fsrs-rating-btn{flex:1;height:50px;border-radius:18px;background:#fff;
   border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
-  font-size:14px;font-weight:500;color:#3F3F46;cursor:pointer;
+  font-size:15px;font-weight:500;color:#3F3F46;cursor:pointer;
   transition:background-color .12s ease,transform .08s ease,opacity .15s ease;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0);will-change:transform}
 .fsrs-rating-btn:hover:not(:disabled){background:#F4F4F5}
