@@ -939,12 +939,14 @@ function getAllVocab(){
   const seen=new Set();
   const merged=[];
   const source = Array.isArray(VOCAB_DATA) ? VOCAB_DATA : [];
+  // 释义合并结果（meaningOverrides）优先于词条本身的 meaning
+  const meaningOv = progress && progress.meaningOverrides ? progress.meaningOverrides : null;
   for(const w of source){
     if(!w || !w.word) continue;
     const key=w.word.toLowerCase();
     if(!seen.has(key)){
       seen.add(key);
-      merged.push(w);
+      merged.push(meaningOv && meaningOv[key]!==undefined ? Object.assign({}, w, {meaning:meaningOv[key]}) : w);
     }
   }
   for(const w of custom){
@@ -952,7 +954,7 @@ function getAllVocab(){
     const key=w.word.toLowerCase();
     if(!seen.has(key)){
       seen.add(key);
-      merged.push(w);
+      merged.push(meaningOv && meaningOv[key]!==undefined ? Object.assign({}, w, {meaning:meaningOv[key]}) : w);
     }
   }
   _vocabCache=merged; _vocabCacheSrc=VOCAB_DATA; _vocabCacheSrcLen=srcLen;
@@ -2013,6 +2015,23 @@ function handleImportFile(input){
   reader.readAsArrayBuffer(file);
 }
 
+// 词语义合并：词已存在但释义没重复时，把新释义合并进该词的 meaning。
+// 拆分用 ；/; 分隔，逐条去重（不区分大小写）；新增的意思插到最前面，
+// 这样背诵/复习展示释义时新添加的意思优先出现在最前。
+function mergeMeaning(existing, incoming){
+  const split=function(s){
+    return String(s||'').split(/[；;]/).map(function(x){ return x.trim(); }).filter(Boolean);
+  };
+  const parts=split(existing);
+  const inParts=split(incoming);
+  let added=0;
+  for(const p of inParts){
+    const i=parts.findIndex(function(q){ return q.toLowerCase()===p.toLowerCase(); });
+    if(i===-1){ parts.unshift(p); added++; }
+  }
+  return { merged:parts.join('；'), added };
+}
+
 function parseImportRows(rows){
   if(rows.length<2){ showToast('文件内容为空'); return; }
   const header=rows[0].map(h=>String(h||'').trim().toLowerCase());
@@ -2068,7 +2087,10 @@ function parseImportRows(rows){
     const totalCount=getWordHfCount(w.word)+batchCount;
     if(existingCount>0){
       if(!seenInNew.has(key)){
-        dupWords.push({word:w.word, meaning:w.meaning, count:totalCount});
+        // 判断该重复词是否带"未出现过的新释义"（需要合并）
+        const ex=allExisting.find(function(x){ return x && x.word && x.word.toLowerCase()===key; });
+        const willMerge = ex ? mergeMeaning(ex.meaning, w.meaning).added>0 : false;
+        dupWords.push({word:w.word, meaning:w.meaning, count:totalCount, willMerge:willMerge});
         seenInNew.add(key);
         if(totalCount>=HF_THRESHOLD) hfWords.push({word:w.word, meaning:w.meaning, count:totalCount});
       }
@@ -2097,6 +2119,7 @@ function parseImportRows(rows){
       return `<div class="import-dup-row">
         <span class="import-dup-word">${d.word}</span>
         <span style="flex:1;margin:0 8px;font-size:12px;color:var(--on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.meaning}</span>
+        ${d.willMerge?'<span style="flex-shrink:0;font-size:11px;color:var(--success)">↻合并新释义</span>':''}
         <span class="import-dup-count">${isHF?'高频 ':''}×${d.count}</span>
       </div>`;
     }).join('');
@@ -2113,7 +2136,7 @@ function confirmImport(){
   for(const w of pendingImportData){ batchCounts[w.word.toLowerCase()]=(batchCounts[w.word.toLowerCase()]||0)+1; }
   const HF_THRESHOLD=3;
   const existingWords=new Set(allExisting.map(w=>w.word.toLowerCase()));
-  let added=0, skipped=0, hfMarked=0;
+  let added=0, skipped=0, hfMarked=0, mergedCount=0;
 
   // 同一批次里同一个词可能出现在多行，必须按"唯一的词"处理一次，
   // 否则 accumulated 会在循环里被反复叠加（3 行会算成 9 次）
@@ -2144,14 +2167,30 @@ function confirmImport(){
         if(!progress.hfOverrides) progress.hfOverrides={};
         progress.hfOverrides[key]=accumulated;
       }
+      // 词已存在但释义没重复：把新释义合并进去（新意思插到最前，背诵复习时优先展示）。
+      // 基准释义优先取历史合并结果（meaningOverrides），避免多次导入重复叠加。
+      const baseMeaning = (progress.meaningOverrides && progress.meaningOverrides[key]) ||
+        (cv ? cv.meaning : '') ||
+        (VOCAB_DATA.find(function(x){ return x.word.toLowerCase()===key; }) || {}).meaning || '';
+      const mm=mergeMeaning(baseMeaning, w.meaning);
+      if(mm.added>0){
+        if(!progress.meaningOverrides) progress.meaningOverrides={};
+        progress.meaningOverrides[key]=mm.merged;
+        for(const x of VOCAB_DATA){
+          if(x.word.toLowerCase()===key){ x.meaning=mm.merged; }
+        }
+        if(cv) cv.meaning=mm.merged;
+        mergedCount++;
+      }
       skipped++;
     }
   }
   invalidateVocabCache();
   saveCustomVocab();
-  if(progress && progress.hfOverrides) saveProgress();
+  if(progress && (progress.hfOverrides || mergedCount>0)) saveProgress();
   closeImportModal();
   let msg=`导入成功！新增 ${added} 词`;
+  if(mergedCount>0) msg+=`，合并新释义 ${mergedCount} 词`;
   if(skipped>0) msg+=`，去重 ${skipped} 词`;
   if(hfMarked>0) msg+=`，标记 ${hfMarked} 个高频词`;
   showToast(msg);
