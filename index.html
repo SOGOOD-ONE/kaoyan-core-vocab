@@ -339,6 +339,10 @@ body{
 /* 评分行内的斩按钮：红色字 */
 .kw-ignore-inline{color:#DC2626}
 .kw-ignore-inline:hover{background:#FFF5F5}
+/* 选错提示条：答错时说明评分强制按模糊处理 */
+.fsrs-rating-hint{margin:0 0 10px;padding:8px 12px;border-radius:10px;
+  background:#FFF7F7;border:1px solid #FECACA;color:#B91C1C;font-size:13px;
+  text-align:center;line-height:1.4}
 
 /* ===== Toast ===== */
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -502,15 +506,16 @@ body{
 <script src="./data.js?v=20260916"></script>
 <script>
 // ===== Config =====
-const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // Legacy, kept for migration
+const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 20]; // Legacy, kept for migration
 
 // ===== 艾宾浩斯遗忘曲线调度器 =====
 // 取代原 ts-fsrs(FSRS-6) 调度引擎，改为经典的艾宾浩斯遗忘曲线复习间隔：
-// 每复习一次（记得 Good）间隔按 1→2→4→7→15→30 天递增；
+// 每复习一次（记得 Good）间隔按 1→2→4→7→15→20 天递增（封顶 20 天，
+// 考前持续重复的需求：间隔到 20 天后不再拉长，保持高频重复）；
 // 模糊(Again)回到最短间隔（1 天）并计入 lapses。
 // 字段结构(stability/difficulty/state/nextReview 等)保持不变，
 // 兼容已存档数据与所有既有调用点。
-const MASTERED_STABILITY_THRESHOLD = 30; // 间隔 >= 30天 且 state===Review 视为已掌握
+const MASTERED_STABILITY_THRESHOLD = 20; // 间隔 >= 20天 且 state===Review 视为已掌握
 
 let fsrsScheduler = null;
 
@@ -683,7 +688,7 @@ function syncLegacyFieldsFromCard(wordState, card, rating){
   if(rating===api.Rating.Again) wordState.level=Math.max(0,(wordState.level||0)-1);
   else wordState.level=Math.min(6,(wordState.level||0)+1);
 
-  // "已掌握" = stability >= 30天 AND state === Review
+  // "已掌握" = stability >= 20天 AND state === Review
   // ignored status is preserved
   const total=(wordState.correct||0)+(wordState.wrong||0);
   const accuracy=total ? (wordState.correct||0)/total : 0;
@@ -1576,7 +1581,7 @@ function getTodayStart(){
 function getTodayEnd(){ return getTodayStart()+86400000; }
 
 function getMasteredCount(){
-  // 艾宾浩斯已掌握标准：state === Review 且 stability >= 30天
+  // 艾宾浩斯已掌握标准：state === Review 且 stability >= 20天
   let count=0;
   for(const w in progress.words){
     if(isWordMastered(progress.words[w])) count++;
@@ -1654,7 +1659,11 @@ function getAutoReviewWords(){
   dueCandidates.sort((a,b)=>{
     const expireDiff = a.nextReview - b.nextReview;
     if(Math.abs(expireDiff)>3600000) return expireDiff;
-    // 仅在此刻(到期时间差 <= 1 小时)才计算记忆强度
+    // 到期时间接近(<=1 小时)时细化：
+    // 1) 选错过的词(lapses/wrong 多)优先——"选错的，下次优先"；
+    // 2) 再看记忆强度，弱的多掉(低 retrievability)的先复习；
+    if(a.wrong !== b.wrong) return b.wrong - a.wrong;
+    // 仅在此刻才计算记忆强度
     if(a.r===undefined) a.r=fsrsRetrievability(a.wp);
     if(b.r===undefined) b.r=fsrsRetrievability(b.wp);
     const rDiff = a.r - b.r;
@@ -2827,11 +2836,17 @@ function selectOption(index){
   // 结果区只放继续按钮（学习模式）或评分面板（复习模式）
   let resultHtml='';
   if(isReviewMode){
+    // 选错参与评分：答题实际对错不能靠用户按"记得"蒙混过关。
+    // 答错时给出提示并禁用"记得"，评分强制按"模糊"(Again)处理。
+    const wrongHint = !isCorrect
+      ? `<div class="fsrs-rating-hint">本题答错 · 评分按「模糊」处理（1 天后优先再复习）</div>` : '';
+    const goodDisabled = !isCorrect ? ' disabled' : '';
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
+      ${wrongHint}
       <div class="fsrs-rating-grid">
         <button class="fsrs-rating-btn kw-ignore-inline" onclick="ignoreCurrentWord()">斩</button>
         <button class="fsrs-rating-btn again" data-rating="1" onclick="applyReviewRating(1)">模糊</button>
-        <button class="fsrs-rating-btn good" data-rating="3" onclick="applyReviewRating(3)">记得</button>
+        <button class="fsrs-rating-btn good" data-rating="3"${goodDisabled} onclick="applyReviewRating(3)">记得</button>
       </div>
     </div>`;
   }else{
@@ -2862,7 +2877,11 @@ function applyReviewRating(ratingNumber){
   session.ratingApplied=true;
   const api=fsrsApi();
   const ratingMap={1:api.Rating.Again,3:api.Rating.Good};
-  const rating=ratingMap[ratingNumber];
+  // 选错参与评分：本题答错时强制按"模糊"(Again)处理——不能靠点"记得"蒙混过关。
+  // selectOption 已禁用"记得"按钮，这里在评分入口再兜底一次（键盘/程序触发等）。
+  // 答错 → 重置 1 天 + 插入重测卡，天然保证"选错的词下次复习优先出现"。
+  const answeredWrong = session.reviewResults && session.reviewResults[currentCard.word]===false;
+  const rating = answeredWrong ? api.Rating.Again : ratingMap[ratingNumber];
   const wp=progress.words[currentCard.word];
   if(!wp || rating===undefined){ session.ratingApplied=false; return; }
   // 单词级 correct/wrong 与总统计按用户点的评分统一定账，排除重测卡
