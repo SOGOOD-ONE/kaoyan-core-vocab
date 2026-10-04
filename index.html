@@ -277,22 +277,7 @@ body{
 .kw-reveal:hover{color:#52525B}
 .kw-reveal.revealed{color:#3F3F46;font-weight:500}
 
-/* 斩掉（学习模式：答完题后的全宽小卡片，与继续按钮一起） */
-.kw-ignore-row{margin-top:14px;text-align:center}
-.kw-ignore-btn{width:100%;min-height:48px;padding:9px 16px;border-radius:18px;background:#fff;
-  border:1px solid rgba(228,228,231,.7);box-shadow:0 4px 20px -4px rgba(0,0,0,.03);
-  color:#DC2626;font-size:15px;font-weight:500;cursor:pointer;
-  transition:background-color .12s ease,border-color .12s ease,transform .08s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translateZ(0)}
-.kw-ignore-btn:hover{background:#FFF5F5;border-color:#FECACA}
-.kw-ignore-btn:active{transform:scale(.99)}
-
-.btn-continue{display:block;width:100%;margin-top:14px;padding:15px;border-radius:16px;
-  border:none;background:#18181B;color:#fff;font-size:16px;font-weight:500;
-  cursor:pointer;transition:background-color .12s ease,transform .08s ease;animation:fadeIn .15s ease;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.btn-continue:hover{background:#000}
-.btn-continue:active{transform:scale(.99)}
+/* 斩掉：学习/复习共用 fsrs-rating 一排按钮，红色字（见评分面板） */
 
 /* ===== Complete ===== */
 .complete-container{padding:60px 24px;text-align:center;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
@@ -340,7 +325,7 @@ body{
 .next-review-info{padding:16px;border-radius:12px;background:var(--primary-container);color:var(--on-primary-container);
   font-size:14px;margin-bottom:24px}
 
-/* ===== 评分面板（斩/模糊/记得：与单词卡同色卡片，一排三键） ===== */
+/* ===== 评分面板（复习：斩/模糊/记得；学习：斩/继续。与单词卡同色卡片，一排按钮） ===== */
 .fsrs-rating-panel{margin-top:14px}
 .fsrs-rating-grid{display:flex;gap:8px}
 .fsrs-rating-btn{flex:1;height:50px;border-radius:18px;background:#fff;
@@ -2593,9 +2578,6 @@ function ensureStudyViewMounted(){
         </div>
         <div class="kw-reveal-row"><button class="kw-reveal" id="reveal-btn" onclick="toggleReveal()">查看选项英文</button></div>
         <div id="study-result-area"></div>
-        <div class="kw-ignore-row" id="study-ignore-row">
-          <button class="kw-ignore-btn" onclick="ignoreCurrentWord()">斩</button>
-        </div>
       </div>
     </div>`;
   cacheStudyEls();
@@ -2623,7 +2605,6 @@ function cacheStudyEls(){
       trans:document.getElementById('trans-'+i),
       ico:document.getElementById('opt-ico-'+i)
     })),
-    ignoreRow:document.getElementById('study-ignore-row'),
     resArea:document.getElementById('study-result-area'),
     qCard:document.getElementById('study-question-card'),
     optionsWrap:document.getElementById('options')
@@ -2686,7 +2667,6 @@ function renderCard(){
     if(opt.trans) opt.trans.textContent = getOptionTranslation(i) || '';
   }
 
-  if(e.ignoreRow) e.ignoreRow.style.display = 'none';
   if(e.resArea) e.resArea.innerHTML = '';
 
   // 卡片入场动画：先移除 class → 强制 reflow → 重新加上，
@@ -2837,9 +2817,6 @@ function selectOption(index){
     session.retestInserted.add(card.word);
   }
 
-  // 答题后：学习模式显示块级斩卡片（与继续按钮一起）；复习模式斩在评分行内
-  if(e && e.ignoreRow) e.ignoreRow.style.display = isReviewMode ? 'none' : 'block';
-
   // 选对才展开释义区，且重置为收起的一行态；选错不展开、不透题
   if(isCorrect && e && e.meaningBox){
     e.meaningBox.classList.add('show');
@@ -2858,7 +2835,12 @@ function selectOption(index){
       </div>
     </div>`;
   }else{
-    resultHtml=`<button class="btn-continue" onclick="nextCard()">${isCorrect?'正确 · 继续':'错误 · 继续'} →</button>`;
+    resultHtml=`<div class="fsrs-rating-panel">
+      <div class="fsrs-rating-grid">
+        <button class="fsrs-rating-btn kw-ignore-inline" onclick="ignoreCurrentWord()">斩</button>
+        <button class="fsrs-rating-btn" onclick="nextCard()">${isCorrect?'正确 · 继续':'错误 · 继续'}</button>
+      </div>
+    </div>`;
   }
 
   if(e && e.resArea){
