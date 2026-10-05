@@ -2838,8 +2838,9 @@ function selectOption(index){
   if(isReviewMode){
     // 选错参与评分：答题实际对错不能靠用户按"记得"蒙混过关。
     // 答错时给出提示并禁用"记得"，评分强制按"模糊"(Again)处理。
+    // 重测卡(首次答错后的补测)再错 → 惩罚更重：数小时内（当天）再次复习，而非等 1 天。
     const wrongHint = !isCorrect
-      ? `<div class="fsrs-rating-hint">本题答错 · 评分按「模糊」处理（1 天后优先再复习）</div>` : '';
+      ? `<div class="fsrs-rating-hint">本题答错 · 评分按「模糊」处理${card.isRetest ? '（重测再错 · 数小时后再次复习）' : '（1 天后优先再复习）'}</div>` : '';
     const goodDisabled = !isCorrect ? ' disabled' : '';
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       ${wrongHint}
@@ -2927,6 +2928,17 @@ function applyReviewRating(ratingNumber){
       // Snappy transition (160ms)
       if(_advanceTimer) clearTimeout(_advanceTimer);
       _advanceTimer=setTimeout(()=>{ nextCardAfterRating(); }, 160);
+    }
+
+    // 重测再错 → 惩罚更重：不再等 1 天，改为 6 小时内（通常当天）再次到期复习。
+    // 首次答错只是"1 天后 + 本场插重测卡"；重测还错说明这个词不稳，
+    // 让它在数小时内再次出现，趁热巩固。scheduled_days 保持 1，
+    // 下次答对仍从 1 天档继续推进，不会影响档位表。
+    if(rating===api.Rating.Again && currentCard.isRetest){
+      const penaltyMs=6*3600000;
+      const dueTs=Date.now()+penaltyMs;
+      wp.nextReview=dueTs;
+      if(wp.fsrs) wp.fsrs.due=dueTs;
     }
 
     // Handle retest: Again rating adds to retest queue
