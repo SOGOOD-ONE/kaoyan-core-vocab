@@ -1704,10 +1704,14 @@ function getAutoReviewWords(){
       // 已掌握词优先于非已掌握
       if(a.mastered !== b.mastered) return (b.mastered?1:0) - (a.mastered?1:0);
       if(a.mastered){
-        // 已掌握内:wrong>0 优先,其余保持打乱顺序(随机)
+        // 已掌握内：错过的优先；同组"距上次复习越久"的词越优先（唤醒沉睡老词，
+        // 避免"老是最近一直在复习的那几个"），今日复习过的排后。其余保持打乱随机。
         const aWrong = a.wrong>0 ? 1 : 0;
         const bWrong = b.wrong>0 ? 1 : 0;
         if(aWrong !== bWrong) return bWrong - aWrong;
+        const aTime = (a.wp && a.wp.lastReview) || 0;
+        const bTime = (b.wp && b.wp.lastReview) || 0;
+        if(aTime !== bTime) return aTime - bTime;
         return 0; // 保持打乱后的随机顺序
       }
       // 非已掌握:按 retrievability 升序(低记忆强度先复习)
@@ -1725,39 +1729,44 @@ function getAutoReviewWords(){
     }
   }
 
-  // 3. V6-EX: 默认模式下补充已掌握词随机复习(防遗忘),优先第一次答错的
-  //    用户需求:考前 80 天持续复习,随时点都有词,稳定性高的已掌握词也要重复
-  //    两级池:优先今天还没复习过的已掌握词;当它们都被过完一轮后,
-  //    降级为"今天已复习过的也能再抽",保证任何时候点"开始复习"都拿得到词
-  //    (否则过完一轮就提示"暂无可复习的单词",与"随时重复"的需求冲突)
-  //    自定义模式:第 2 步已按 已掌握优先+wrong>0 填满 reviewGoal,不额外补充
-  if(isDefaultMode){
-    const todayStart = getTodayStart();
-    const freshPool = [], recycledPool = [];
-    for(let i=0; i<learnedWords.length; i++){
-      const w = learnedWords[i];
-      if(selectedSet.has(w.word)) continue;
-      const wp = progress.words[w.word];
-      if(!wp || !isWordMastered(wp)) continue;
-      const item = { word: w, wrong: wp.wrong || 0 };
-      if(wp.lastReview && wp.lastReview >= todayStart) recycledPool.push(item);
-      else freshPool.push(item);
-    }
-    const masteredPool = freshPool.length > 0 ? freshPool : recycledPool;
-    if(masteredPool.length > 0){
-      // 补充量:已掌握词的 5%,最少 5 个,最多 20 个
-      const masteredQuota = Math.min(20, Math.max(5, Math.ceil(masteredPool.length * 0.05)));
-      // 优先第一次答错的(wrong > 0),其余次之,各自随机
-      const wrongFirst = shuffle(masteredPool.filter(c => c.wrong > 0));
-      const noWrong = shuffle(masteredPool.filter(c => c.wrong === 0));
-      const ordered = [...wrongFirst, ...noWrong];
-      for(let i=0; i<ordered.length && i<masteredQuota; i++){
-        const item = ordered[i].word;
-        selectedSet.add(item.word);
-        result.push(item);
+  // 3. 默认模式补充池(防遗忘轮转):覆盖"学过但还没到期的所有词"(含未掌握老词),
+      //    解决"之前的内容一直没复习到"的问题——到期词走 due 通道,这里只补未到期的。
+      //    排序：错过的优先 → 已掌握优先 → 距上次复习越久越优先(沉睡老词先醒)。
+      //    配额:池子 8%,最少 10,最多 40(旧为仅已掌握 5%/min5/max20,覆盖面太小)。
+      //    自定义模式:第 2 步已覆盖全部已学词,不额外补充。
+      if(isDefaultMode){
+        const now2 = Date.now();
+        const supplementPool = [];
+        for(let i=0; i<learnedWords.length; i++){
+          const w = learnedWords[i];
+          if(selectedSet.has(w.word)) continue;
+          const wp = progress.words[w.word];
+          if(!wp || (wp.nextReview && wp.nextReview<=now2)) continue;
+          supplementPool.push({ word: w, wp, wrong: wp.wrong||0, mastered: isWordMastered(wp) });
+        }
+        if(supplementPool.length>0){
+          const supplementQuota = Math.min(40, Math.max(10, Math.ceil(supplementPool.length*0.08)));
+          const shuffled = shuffle(supplementPool);
+          shuffled.sort((a,b)=>{
+            // 1) 错过的优先(薄弱词先解决)
+            const aWrong = a.wrong>0 ? 1 : 0;
+            const bWrong = b.wrong>0 ? 1 : 0;
+            if(aWrong !== bWrong) return bWrong - aWrong;
+            // 2) 已掌握优先(防遗忘池密度最高)
+            if(a.mastered !== b.mastered) return (b.mastered?1:0) - (a.mastered?1:0);
+            // 3) 距上次复习越久越优先(唤醒沉睡老词),同刻保持打乱随机
+            const aTime = (a.wp && a.wp.lastReview) || 0;
+            const bTime = (b.wp && b.wp.lastReview) || 0;
+            if(aTime !== bTime) return aTime - bTime;
+            return 0;
+          });
+          for(let i=0; i<supplementQuota && i<shuffled.length; i++){
+            const item = shuffled[i].word;
+            selectedSet.add(item.word);
+            result.push(item);
+          }
+        }
       }
-    }
-  }
 
   return shuffle(result);
 }
@@ -1771,7 +1780,7 @@ function computeHomeStats(){
   const all=getAllVocab();
   const words=progress.words;
   let dueCount=0, overdueCount=0, newCount=0, learnedCount=0, ignoredCount=0, wrongCount=0;
-  let masteredFresh=0, masteredRecycled=0;
+  let supplementPoolCount=0;
   for(let i=0; i<all.length; i++){
     const w=all[i];
     const wp=words[w.word];
@@ -1796,21 +1805,19 @@ function computeHomeStats(){
     }
     // 错题本:wrong>=3(已排除 ignored)
     if((wp.wrong||0)>=3) wrongCount++;
-    // 已掌握词补充复习候选:优先今天没复习过的;都被过完一轮后降级为可重复复习
-    // (与 getAutoReviewWords 第 3 步的两级池口径保持一致)
-    // 补充基数必须排除"已到期"的已掌握词:它们会走 due 通道被选中,
-    // 若计入则主页 supplementCount 会大于实际能补到的词数(之前对不上账的根因)。
-    if(isWordMastered(wp) && wp.nextReview && wp.nextReview>now){
-      if(!wp.lastReview || wp.lastReview<todayStart) masteredFresh++;
-      else masteredRecycled++;
+    // 补充复习候选:所有"已学且未来到期"的词(含未掌握老词)
+    // 与 getAutoReviewWords 第 3 步的补充池口径一致:
+    // 到期词(nextReview<=now)走 due 通道,不进补充池(否则主页会多于实际能补到的词)。
+    // 补充量 = 池子 8%,最少 10,最多 40。
+    if(wp.nextReview && wp.nextReview>now){
+      supplementPoolCount++;
     }
   }
-  const masteredAvailable = masteredFresh>0 ? masteredFresh : masteredRecycled;
-  // 补充量只在确有未到期已掌握词时按下限 5~20 计算；基数 0 时必须是 0，
-  // 否则主页会凭空多出 5 个(实际抽词时没得补,又对不上账)
   let supplementCount = 0;
-  if(progress.reviewGoal===0 && masteredAvailable>0){
-    supplementCount=Math.min(20, Math.max(5, Math.ceil(masteredAvailable*0.05)));
+  if(progress.reviewGoal===0 && supplementPoolCount>0){
+    // 补充量 = 池子 8%,最少 10,最多 40；但不能超过池子本身大小，
+    // 否则候选不足 10 个时会虚报(主页显示 10、实际只抽得 3,对不上账)
+    supplementCount=Math.min(supplementPoolCount, Math.min(40, Math.max(10, Math.ceil(supplementPoolCount*0.08))));
   }
   return {
     all, totalCount: all.length,
