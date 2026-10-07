@@ -2341,6 +2341,7 @@ function renderHome(){
       <div class="hn-menu-content" onclick="event.stopPropagation()">
         <button class="hn-menu-item" onclick="showImportModal();hnToggleMenu(false)"><span>导入 Excel 生词</span><span>›</span></button>
         <button class="hn-menu-item" onclick="exportData();hnToggleMenu(false)"><span>导出备份进度</span><span>.json</span></button>
+        <button class="hn-menu-item" onclick="confirmRescheduleMastered();hnToggleMenu(false)"><span>已掌握词分期重排</span><span>›</span></button>
         <button class="hn-menu-item" onclick="importData();hnToggleMenu(false)"><span>恢复学习进度</span><span>›</span></button>
         <button class="hn-menu-item" onclick="resetProgress();hnToggleMenu(false)"><span>重置全部进度</span><span>›</span></button>
         <button class="hn-menu-item" onclick="logout();hnToggleMenu(false)"><span>切换用户</span><span>${escapeHtml(currentUser||'')}</span></button>
@@ -2389,6 +2390,54 @@ function resetProgress(){
       showToast('进度已重置');
     }
   });
+}
+
+// 已掌握词分期重排：把"已掌握且未到期"的老词按 10 批分散到未来 1~10 天到期，
+// 每天自然有一批进「今日待复习」，10 天洗完一轮、之后每词每 10 天自然循环。
+// 已斩/新词/已在复习中/已到期的词一律不动。
+function confirmRescheduleMastered(){
+  showAppConfirm({
+    title:'已掌握词分期重排',
+    message:'把未到期的已掌握老词分 10 批，分散到未来 1~10 天到期，每天自然有一批进「今日待复习」。已斩/新词/已到期的词不受影响。建议先「导出备份进度」。确定执行吗？',
+    icon:'⚠️',
+    confirmText:'确认重排',
+    cancelText:'取消',
+    isDanger:false,
+    onConfirm:()=>{
+      const n=rescheduleMasteredWords();
+      renderHome();
+      showToast(n>0?('已分派 '+n+' 个已掌握词到未来 1~10 天'):'没有需要重排的已掌握词');
+    }
+  });
+}
+
+function rescheduleMasteredWords(){
+  if(!progress || !progress.words) return 0;
+  const now=Date.now(), DAY=86400000;
+  const start=getTodayStart()+DAY;  // 从明天开始分派，今日已到期的不动
+  const pool=[];
+  for(const w in progress.words){
+    const wp=progress.words[w];
+    if(!wp||wp.status==='ignored'||wp.status==='new') continue;
+    const mastered=wp.status==='mastered'||(wp.fsrs&&wp.fsrs.state===2&&(wp.fsrs.stability||0)>=10);
+    if(!mastered) continue;
+    if(wp.nextReview&&wp.nextReview<=now) continue; // 已到期=已在今日，不重排
+    pool.push(w);
+  }
+  if(pool.length===0) return 0;
+  const batchLen=Math.ceil(pool.length/10);
+  for(let i=pool.length-1;i>0;i--){ // 打乱，让每天配额均衡
+    const j=(Math.random()*(i+1))|0;
+    const t=pool[i]; pool[i]=pool[j]; pool[j]=t;
+  }
+  for(let i=0; i<pool.length; i++){
+    const ts=start+Math.floor(i/batchLen)*DAY; // 第1~10天各一批
+    const wp=progress.words[pool[i]];
+    wp.nextReview=ts;
+    if(wp.fsrs) wp.fsrs.due=ts;
+  }
+  saveProgress();
+  return pool.length;
 }
 
 // ===== Wrong Word Practice =====
