@@ -541,8 +541,9 @@ function snapToEBIntervals(days){
 
 // 计算下一个复习间隔（天）：tier = 当前所处间隔档位
 // card 上可选字段 roundStart（本轮起点档，默认 1）与 settled（是否已固定 7 天循环，默认 false）
-// 曲线重排的起点序列（用户指定）：1 → 4 → 7；起点 7 到顶后固定 7 天循环
-const ROUND_STARTS = [1, 4, 7];
+// 曲线重排的起点序列（用户指定）：1 → 2 → 4 → 7；起点 7 到顶后固定 7 天循环。
+// 起点即档位表去掉最高档(10)：1→2→4→7，每轮到顶后起点进一档，起点到 7 再顶则固定。
+const ROUND_STARTS = EB_INTERVALS.slice(0, EB_INTERVALS.length-1); // [1, 2, 4, 7]
 function ebNextTier(prevDays, rating, card){
   let tier = EB_INTERVALS.indexOf(prevDays);
   if(tier < 0) tier = -1; // 不在表中的旧/空数据从 0 天档之前开始（首次答题进 1 天）
