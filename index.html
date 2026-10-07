@@ -510,12 +510,16 @@ const REVIEW_INTERVALS = [1, 2, 4, 7, 10]; // Legacy, kept for migration
 
 // ===== 艾宾浩斯遗忘曲线调度器 =====
 // 取代原 ts-fsrs(FSRS-6) 调度引擎，改为经典的艾宾浩斯遗忘曲线复习间隔：
-// 每复习一次（记得 Good）间隔按 1→2→4→7→10 天递增（封顶 10 天，
-// 考前持续重复的需求：间隔到 10 天后不再拉长，保持高频重复）；
+// 每复习一次（记得 Good）间隔按 1→2→4→7→10 天递增（封顶 10 天）；
 // 模糊(Again)回到最短间隔（1 天）并计入 lapses。
-// 字段结构(stability/difficulty/state/nextReview 等)保持不变，
-// 兼容已存档数据与所有既有调用点。
-const MASTERED_STABILITY_THRESHOLD = 10; // 间隔 >= 10天 且 state===Review 视为已掌握
+// 到顶后的"曲线重排"（用户指定节奏）：
+//   第一轮 起点1：1→2→4→7→10(顶) → 下轮起点 4
+//   第二轮 起点4：4→7→10(顶)       → 下轮起点 7
+//   第三轮 起点7：7→10(顶)          → 固定 7 天循环（settled），不再回 10
+// 卡片新增两字段：roundStart（本轮起点档，默认1）与 settled（是否已固定7天循环）。
+// 字段结构(stability/difficulty/state/nextReview 等)保持不变，兼容存档。
+// 旧卡无 roundStart/settled：按第一轮(起点1)与未固定处理。
+const MASTERED_STABILITY_THRESHOLD = 7; // 已掌握判定：state===Review 且 (stability>=7 或已固定 settled)
 
 let fsrsScheduler = null;
 
@@ -536,10 +540,23 @@ function snapToEBIntervals(days){
 }
 
 // 计算下一个复习间隔（天）：tier = 当前所处间隔档位
-function ebNextTier(prevDays, rating){
+// card 上可选字段 roundStart（本轮起点档，默认 1）与 settled（是否已固定 7 天循环，默认 false）
+// 曲线重排的起点序列（用户指定）：1 → 4 → 7；起点 7 到顶后固定 7 天循环
+const ROUND_STARTS = [1, 4, 7];
+function ebNextTier(prevDays, rating, card){
   let tier = EB_INTERVALS.indexOf(prevDays);
   if(tier < 0) tier = -1; // 不在表中的旧/空数据从 0 天档之前开始（首次答题进 1 天）
   if(rating===1) return 0; // 模糊 → 1 天
+  // 已固定：7 天循环，不再爬升到 10
+  if(card && card.settled) return EB_INTERVALS.indexOf(7);
+  if(tier >= EB_INTERVALS.length-1){
+    // 到顶(10天)后的"曲线重排"：本轮起点 -> 下一轮起点按 ROUND_STARTS 推进；
+    // 起点 7（或未识别）到顶 → 固定 7（settled），不再回 10。
+    const start = (card && card.roundStart) || 1;
+    const startIdx = ROUND_STARTS.indexOf(start);
+    if(startIdx < 0 || startIdx >= ROUND_STARTS.length-1) return EB_INTERVALS.indexOf(ROUND_STARTS[ROUND_STARTS.length-1]); // 固定7
+    return EB_INTERVALS.indexOf(ROUND_STARTS[startIdx+1]); // 起点 1→4、4→7
+  }
   return Math.min(tier+1, EB_INTERVALS.length-1); // 记得 → 进 1 档
 }
 
@@ -547,9 +564,25 @@ function ebNextTier(prevDays, rating){
 function createEbbinghausScheduler(){
   return {
     next(card, now, rating){
-      const days = EB_INTERVALS[ebNextTier(card.scheduled_days || card.stability || 0, rating)];
       const isAgain = rating===1;
+      const days = EB_INTERVALS[ebNextTier(card.scheduled_days || card.stability || 0, rating, card)];
       const state = (isAgain && (card.reps||0)>=2) ? 3 : (isAgain ? 1 : 2);
+      // 曲线重排状态更新：
+      //   - 模糊 Again：彻底重置，下一轮仍从 1 天起点爬（roundStart 回 1，取消固定）
+      //   - 记得 Good 且上一档已是到顶档：roundStart 前进 1→4→7；起点 7 再顶 → 固定
+      let roundStart = card.roundStart || 1;
+      let settled = !!card.settled;
+      if(isAgain){
+        roundStart = 1;
+        settled = false;
+      }else{
+        const prevTier = EB_INTERVALS.indexOf(card.scheduled_days || card.stability || 0);
+        if(prevTier >= EB_INTERVALS.length-1){ // 上一档已到顶 → 已触发曲线重排
+          const startIdx = ROUND_STARTS.indexOf(roundStart);
+          if(startIdx < 0 || startIdx >= ROUND_STARTS.length-1){ settled = true; roundStart = ROUND_STARTS[ROUND_STARTS.length-1]; } // 起点7/未知 → 固定7
+          else{ roundStart = ROUND_STARTS[startIdx+1]; settled = false; } // 起点 1→4、4→7
+        }
+      }
       return {
         card: {
           due: new Date(now.getTime() + days*86400000),
@@ -561,6 +594,8 @@ function createEbbinghausScheduler(){
           lapses: (card.lapses||0)+(isAgain?1:0),
           state,
           learning_steps: 0,
+          roundStart,
+          settled,
           last_review: new Date(now.getTime())
         }
       };
@@ -586,7 +621,7 @@ function fsrsApi(){
   return {
     State: { New: 0, Learning: 1, Review: 2, Relearning: 3 },
     Rating: { Again: 1, Good: 3 },
-    createEmptyCard: () => ({ due: new Date(), stability: 0, difficulty: 0, elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, state: 0, learning_steps: 0, last_review: null })
+    createEmptyCard: () => ({ due: new Date(), stability: 0, difficulty: 0, elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, state: 0, learning_steps: 0, roundStart: 1, settled: false, last_review: null })
   };
 }
 
@@ -629,6 +664,8 @@ function serializeFSRSCard(card){
     // 写错会让每次读回都从第 0 步重来：Good 永远只能排到 10 分钟后，
     // Learning 状态的卡片永远无法毕业。
     learning_steps: card.learning_steps ?? 0,
+    roundStart: card.roundStart ?? 1,
+    settled: !!card.settled,
     last_review: card.last_review instanceof Date ? card.last_review.getTime() : (card.last_review ?? null)
   };
 }
@@ -650,6 +687,8 @@ function hydrateFSRSCard(saved){
     state: saved.state ?? api.State.New,
     // 兼容早期误写成 step 的存档
     learning_steps: Number(saved.learning_steps ?? saved.step ?? 0),
+    roundStart: Number(saved.roundStart ?? 1),
+    settled: !!saved.settled,
     last_review: saved.last_review ? new Date(saved.last_review) : undefined
   };
 }
@@ -2419,7 +2458,7 @@ function rescheduleMasteredWords(){
   for(const w in progress.words){
     const wp=progress.words[w];
     if(!wp||wp.status==='ignored'||wp.status==='new') continue;
-    const mastered=wp.status==='mastered'||(wp.fsrs&&wp.fsrs.state===2&&(wp.fsrs.stability||0)>=10);
+    const mastered=wp.status==='mastered'||(wp.fsrs&&wp.fsrs.state===2&&(wp.fsrs.stability||0)>=MASTERED_STABILITY_THRESHOLD);
     if(!mastered) continue;
     if(wp.nextReview&&wp.nextReview<=now) continue; // 已到期=已在今日，不重排
     pool.push(w);
