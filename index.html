@@ -1771,12 +1771,12 @@ function getAutoReviewWords(){
   return shuffle(result);
 }
 
-// 默认模式补充配额：池子 20%,最少 20,最多 100。
-// 用户每天早+晚各刷一次"今日"，希望复习量充足、已掌握/沉睡老词能轮转到，
-// 提高占比。返回值已封顶到池子本身大小(候选不足时主页不会虚报)。
+// 默认模式补充配额：池子 20%,最少 20,最多 150。
+// 用户每天早+晚各刷一次"今日"，指定每日补充 150 个，
+// 已掌握/沉睡老词轮转更充分。返回值已封顶到池子本身大小(候选不足时主页不会虚报)。
 function supplementQuota(poolSize){
   if(!(poolSize>0)) return 0;
-  return Math.min(poolSize, Math.min(100, Math.max(20, Math.ceil(poolSize*0.2))));
+  return Math.min(poolSize, Math.min(150, Math.max(20, Math.ceil(poolSize*0.2))));
 }
 
 // 主页统计合并计算：一次性遍历 getAllVocab() 得到所有主页需要的计数
