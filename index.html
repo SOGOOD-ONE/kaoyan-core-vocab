@@ -719,6 +719,10 @@ function migrateToEB(word){
     const c=hydrateFSRSCard(word.fsrs);
     const s=snapToEBIntervals(c.stability);
     c.stability=s; c.scheduled_days=s;
+    // 算法切换前遗留的旧 due：若过期超过 1 天,视为历史欠账,按吸附档位从现在重排,
+    // 否则积累的老词(几个月前 FSRS 就到期)会全量判"逾期"涌进"今日",与当前学习脱节。
+    const dueMs=c.due.getTime();
+    if(dueMs < Date.now()-86400000) c.due=new Date(Date.now()+s*86400000);
     word.fsrs=serializeFSRSCard(c);
     word.stability=s;
     word.difficulty=c.difficulty;
@@ -730,6 +734,9 @@ function migrateToEB(word){
   const card=getFSRSCard(word);
   const s=snapToEBIntervals(card.stability);
   card.stability=s; card.scheduled_days=s;
+  // 同上：LSIR 旧词 nextReview 多为历史时间,迁移时按吸附档位从现在重排(过期>1天)。
+  const dueMs=card.due.getTime();
+  if(dueMs < Date.now()-86400000) card.due=new Date(Date.now()+s*86400000);
   word.fsrs=serializeFSRSCard(card);
   word.stability=card.stability;
   word.difficulty=card.difficulty;
