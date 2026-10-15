@@ -2070,20 +2070,38 @@ function handleImportFile(input){
 }
 
 // 词语义合并：词已存在但释义没重复时，把新释义合并进该词的 meaning。
-// 拆分用 ；/; 分隔，逐条去重（不区分大小写）；新增的意思插到最前面，
-// 这样背诵/复习展示释义时新添加的意思优先出现在最前。
+// 原有释义按 ；/; 分段并保持原样顺序；一条释义内部再用 ，、 拆成"原子义项"用于查重。
+// 查重时忽略大小写、空白、括号注解（如"牛市行情（指……）"与"牛市行情"视为同一意思）与句末句号，
+// 因此意思相同的绝不重复添加；只有真正的新意思才加，且插到最前面，背诵/复习时优先展示。
 function mergeMeaning(existing, incoming){
-  const split=function(s){
+  const splitP=function(s){
     return String(s||'').split(/[；;]/).map(function(x){ return x.trim(); }).filter(Boolean);
   };
-  const parts=split(existing);
-  const inParts=split(incoming);
-  let added=0;
-  for(const p of inParts){
-    const i=parts.findIndex(function(q){ return q.toLowerCase()===p.toLowerCase(); });
-    if(i===-1){ parts.unshift(p); added++; }
+  const norm=function(s){
+    return String(s||'').toLowerCase()
+      .replace(/[（(][^）)]*[）)]/g,'')
+      .replace(/[\s\u3000]/g,'')
+      .replace(/[。．.]+$/,'');
+  };
+  const atoms=function(s){
+    const out=[];
+    for(const p of splitP(s)){
+      for(const a of p.split(/[，,、]/)){ const t=a.trim(); if(t) out.push(t); }
+    }
+    return out;
+  };
+  const parts=splitP(existing);
+  const seen=new Set();
+  for(const a of atoms(existing)){ const n=norm(a); if(n) seen.add(n); }
+  const fresh=[];
+  for(const a of atoms(incoming)){
+    const n=norm(a);
+    if(!n || seen.has(n)) continue;   // 意思一样：不重复添加
+    seen.add(n);
+    fresh.push(a);                    // 新意思：稍后插到最前
   }
-  return { merged:parts.join('；'), added };
+  if(fresh.length){ parts.unshift.apply(parts, fresh); }
+  return { merged:parts.join('；'), added:fresh.length };
 }
 
 function parseImportRows(rows){
