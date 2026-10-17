@@ -2888,7 +2888,8 @@ function selectOption(index){
   }
 
   // For non-review modes (study): add wrong words to retest queue
-  if(!isReviewMode && !isCorrect && !session.retestInserted.has(card.word)){
+  // 重测卡再答错不再继续插新卡（每题每场最多重测一次），避免会话无限增长刷不完
+  if(!isReviewMode && !isCorrect && !card.isRetest && !session.retestInserted.has(card.word)){
     const retestCard={...card, passType:Math.random()<0.5?'cn2en':'en2cn', passLabel:Math.random()<0.5?'汉选英':'英选汉', passNum:0, isRetest:true, retestDelay:3+Math.floor(Math.random()*3)};
     session.retestQueue.push(retestCard);
     session.retestInserted.add(card.word);
@@ -3010,7 +3011,9 @@ function applyReviewRating(ratingNumber){
     }
 
     // Handle retest: Again rating adds to retest queue
-    if(rating===api.Rating.Again && !session.retestInserted.has(currentCard.word)){
+    // 重测卡再评"模糊"不再插新的重测卡（每题每场最多重测一次）：
+    // retestInserted 在重测卡插入时已被 delete，不排除 isRetest 会无限补卡导致刷不完
+    if(rating===api.Rating.Again && !currentCard.isRetest && !session.retestInserted.has(currentCard.word)){
       const card=currentCard;
       const retestCard={...card, passType:Math.random()<0.5?'cn2en':'en2cn', passLabel:Math.random()<0.5?'汉选英':'英选汉', passNum:0, isRetest:true, retestDelay:3+Math.floor(Math.random()*3)};
       session.retestQueue.push(retestCard);
