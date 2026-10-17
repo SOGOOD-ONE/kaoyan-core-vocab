@@ -1563,6 +1563,39 @@ function writeSessionNow(forceSync){
 window.addEventListener('pagehide', ()=>{ flushPersistence(true); });
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushPersistence(true); });
 
+// 会话卡片收敛（安全阀）：任何异常路径都不允许卡数超过"每词上限"，
+// 学习模式每词 3 遍 + 最多 3 张重测 = 6（重测被消费后该词可再次补测）；
+// 复习/错题本每词 1 张 + 最多 1 张重测 = 2。
+// 旧版本曾因重测卡自我复制把会话涨到几千张并存进本地存档，直接恢复会继续"刷不完"，
+// 这里在读取存档时按上限裁剪，保证任何历史存档都能正常收尾。
+function sanitizeSessionCards(s){
+  if(!s || !Array.isArray(s.cards)) return s;
+  const per = s.type==='study' ? 6 : 2;
+  const seen = Object.create(null);
+  const kept = [];
+  for(let i=0;i<s.cards.length;i++){
+    const c = s.cards[i];
+    const w = c && c.word;
+    const n = seen[w] || 0;
+    if(n < per){ seen[w] = n+1; kept.push(c); }
+  }
+  if(kept.length !== s.cards.length){
+    s.cards = kept;
+    if(typeof s.currentIndex==='number' && s.currentIndex >= kept.length) s.currentIndex = Math.max(0, kept.length-1);
+    s.totalCardCount = Math.max(1, (s.savedIndex||0) + kept.length);
+  }
+  if(Array.isArray(s.retestQueue)){
+    const qseen = Object.create(null);
+    const q = [];
+    for(let i=0;i<s.retestQueue.length;i++){
+      const w = s.retestQueue[i] && s.retestQueue[i].word;
+      if(!qseen[w]){ qseen[w] = 1; q.push(s.retestQueue[i]); }
+    }
+    if(q.length !== s.retestQueue.length) s.retestQueue = q;
+  }
+  return s;
+}
+
 function loadSession(){
   // 有挂起的写入先落盘，避免读到旧状态（例如刚结束学习就要显示“继续学习”横幅）
   if(_persistTimer) flushPersistence();
@@ -1575,7 +1608,7 @@ function loadSession(){
         s.studiedWords=new Set(s.studiedWords||[]);
         s.retestInserted=new Set(s.retestInserted||[]);
         s.answeredWords=new Set(s.answeredWords||[]);
-        return s;
+        return sanitizeSessionCards(s);
       }
     }catch(e){}
   }
@@ -1591,7 +1624,7 @@ async function loadSessionFromDB(){
       s.studiedWords=new Set(s.studiedWords||[]);
       s.retestInserted=new Set(s.retestInserted||[]);
       s.answeredWords=new Set(s.answeredWords||[]);
-      return s;
+      return sanitizeSessionCards(s);
     }catch(e){ return null; }
   }
   return null;
@@ -3045,6 +3078,16 @@ function nextCard(){
   if(now-_lastAdvanceAt<120) return;       // 防连点跳题 (120ms)
   _lastAdvanceAt=now;
   if(_advanceTimer){ clearTimeout(_advanceTimer); _advanceTimer=null; }
+  // 硬安全阀：任何未预见的路径都不允许卡片无限增长。正常上限 = 每词 2 张(复习类)
+  // 或 6 张(学习：3 遍 + 最多 3 张重测)；一旦超出说明有新的补卡路径失控，
+  // 立即结算收尾，避免再次出现"永远刷不完"。
+  if(!session._cardCap){
+    const perCap = session.type==='study' ? 6 : 2;
+    const uniq = new Set();
+    for(let i=0;i<session.cards.length;i++) uniq.add(session.cards[i].word);
+    session._cardCap = Math.max(1, uniq.size*perCap);
+  }
+  if(session.cards.length > session._cardCap){ completeSession(); return; }
   session.currentIndex++;
   if(session.retestQueue.length>0){
     const remaining=session.cards.length - session.currentIndex;
