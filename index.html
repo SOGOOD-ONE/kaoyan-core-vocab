@@ -1580,9 +1580,12 @@ function sanitizeSessionCards(s){
     if(n < per){ seen[w] = n+1; kept.push(c); }
   }
   if(kept.length !== s.cards.length){
+    // 历史膨胀存档：裁剪后已做过多少张已不可信，直接以裁剪后的列表为新起点，
+    // 否则首页横幅会出现"进度 1001/1800"这类怪数字，让人以为又要刷很久。
     s.cards = kept;
-    if(typeof s.currentIndex==='number' && s.currentIndex >= kept.length) s.currentIndex = Math.max(0, kept.length-1);
-    s.totalCardCount = Math.max(1, (s.savedIndex||0) + kept.length);
+    s.currentIndex = 0;
+    s.savedIndex = 0;
+    s.totalCardCount = Math.max(1, kept.length);
   }
   if(Array.isArray(s.retestQueue)){
     const qseen = Object.create(null);
@@ -2940,9 +2943,9 @@ function selectOption(index){
   if(isReviewMode){
     // 选错参与评分：答题实际对错不能靠用户按"记得"蒙混过关。
     // 答错时给出提示并禁用"记得"，评分强制按"模糊"(Again)处理。
-    // 重测卡(首次答错后的补测)再错 → 惩罚更重：数小时内（当天）再次复习，而非等 1 天。
+    // 无论首答还是重测，答错的词都按"模糊"推到 1 天后（明天再来），不会当天反复出现。
     const wrongHint = !isCorrect
-      ? `<div class="fsrs-rating-hint">本题答错 · 评分按「模糊」处理${card.isRetest ? '（重测再错 · 数小时后再次复习）' : '（1 天后优先再复习）'}</div>` : '';
+      ? `<div class="fsrs-rating-hint">本题答错 · 评分按「模糊」处理（1 天后优先再复习）</div>` : '';
     const goodDisabled = !isCorrect ? ' disabled' : '';
     resultHtml=`<div class="fsrs-rating-panel" id="fsrs-rating-panel">
       ${wrongHint}
@@ -3032,16 +3035,9 @@ function applyReviewRating(ratingNumber){
       _advanceTimer=setTimeout(()=>{ nextCardAfterRating(); }, 160);
     }
 
-    // 重测再错 → 惩罚更重：不再等 1 天，改为 6 小时内（通常当天）再次到期复习。
-    // 首次答错只是"1 天后 + 本场插重测卡"；重测还错说明这个词不稳，
-    // 让它在数小时内再次出现，趁热巩固。scheduled_days 保持 1，
-    // 下次答对仍从 1 天档继续推进，不会影响档位表。
-    if(rating===api.Rating.Again && currentCard.isRetest){
-      const penaltyMs=6*3600000;
-      const dueTs=Date.now()+penaltyMs;
-      wp.nextReview=dueTs;
-      if(wp.fsrs) wp.fsrs.due=dueTs;
-    }
+    // 重测再错不再排到当天数小时后：applyFSRSRating(Again) 已把 nextReview 推到 1 天后。
+    // 若额外改成 6 小时内到期，用户上午复习、傍晚回首页就会看到这批词"又变成待复习"，
+    // 被感知成"复习完还有一堆没做/一直让我刷"。统一按"模糊=1 天"的既有节奏处理。
 
     // Handle retest: Again rating adds to retest queue
     // 重测卡再评"模糊"不再插新的重测卡（每题每场最多重测一次）：
