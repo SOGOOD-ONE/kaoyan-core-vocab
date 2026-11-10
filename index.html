@@ -1315,6 +1315,22 @@ function exportVocabExcel(filtered){
   showToast('已导出 '+words.length+' 个单词');
 }
 
+// 首页菜单一键导出口：导出完整词库（内置词 + 自定义/导入词）的纯词表
+function exportAllWords(){
+  const words=getAllVocab();
+  if(words.length===0){ showToast('没有可导出的单词'); return; }
+  const data=[['单词','词性','释义','分类']];
+  for(const w of words){
+    data.push([w.word, w.type||'', w.meaning||'', w.category||'']);
+  }
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:18},{wch:8},{wch:40},{wch:12}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '全部单词');
+  XLSX.writeFile(wb, '考研英语核心词_全部单词_'+getToday()+'.xlsx');
+  showToast('已导出 '+words.length+' 个单词');
+}
+
 function showExportMenu(){
   const filtered=getFilteredVocab();
   const all=getAllVocab();
@@ -2376,6 +2392,7 @@ function renderHome(){
     <div class="hn-menu-mask" id="hn-menu-mask" onclick="hnToggleMenu(false)">
       <div class="hn-menu-content" onclick="event.stopPropagation()">
         <button class="hn-menu-item" onclick="showImportModal();hnToggleMenu(false)"><span>导入 Excel 生词</span><span>›</span></button>
+        <button class="hn-menu-item" onclick="exportAllWords();hnToggleMenu(false)"><span>导出所有单词</span><span>${totalCount} 词 · xlsx</span></button>
         <button class="hn-menu-item" onclick="exportData();hnToggleMenu(false)"><span>导出备份进度</span><span>.json</span></button>
         <button class="hn-menu-item" onclick="confirmRescheduleMastered();hnToggleMenu(false)"><span>已掌握词分期重排</span><span>›</span></button>
         <button class="hn-menu-item" onclick="importData();hnToggleMenu(false)"><span>恢复学习进度</span><span>›</span></button>
